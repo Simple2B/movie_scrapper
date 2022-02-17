@@ -1,5 +1,6 @@
 import os
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 # from selenium.webdriver.common.by import By
 # from selenium.webdriver.support.ui import WebDriverWait
 # from selenium.webdriver.support import expected_conditions
@@ -9,7 +10,9 @@ import time
 # from selenium.webdriver.common.keys import Keys
 # from selenium.webdriver.common.action_chains import ActionChains
 # from bs4 import BeautifulSoup
-from app.config import settings
+
+
+base_dir = "/home/linp/simple2b/movie_scrap/"
 
 
 # chrome_options = Options()
@@ -59,7 +62,7 @@ def get_pages(page):
     # driver.set_page_load_timeout(30)
 
     start_time = time.time()
-    print(">>>>>>>>>>>>>> Scrapper start time: ",start_time)
+    print(">>>>>>>>>>>>>> Scrapper start time: ", start_time)
 
     ############################################################################################
     # here load strategy may be chosen. Default is standard strategy. It is more like human.
@@ -92,7 +95,7 @@ def get_pages(page):
     #profile.update_preferences()
 	
     #launching webdriver browserprint(os.path.abspath("text_files/Knowncyberlockers.txt"))
-    driver = webdriver.Firefox(options=options, executable_path = os.path.abspath("drivers/geckodriver"))
+    driver = webdriver.Firefox(options=options, executable_path="/home/linp/simple2b/movie_scrap//drivers/geckodriver")
     driver.maximize_window()
     driver.implicitly_wait(5)
     ############################################################################################
@@ -139,7 +142,6 @@ def get_pages(page):
     f.write(str(outer_html))
     f.close()
 
-    print("Done.")
     print(">>>>>>>>>>>>>> Scrapper finished in: ", time.time() - start_time)
     driver.quit()
 
@@ -148,16 +150,16 @@ def scrapper(url: str):
     from selenium.webdriver.chrome.options import Options
 
     start_time = time.time()
-    print(">>>>>>>>>>>>>> Scrapper start time: ", start_time)
+    # print(">>>>>>>>>>>>>> Scrapper start time: ", time.localtime())
     options = Options()
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument('--disable-infobars')
-    options.add_argument("--headless")
+    #options.add_argument("--headless")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--remote-debugging-port=9222")
     options.add_argument('log-level=3')
-    driver = webdriver.Chrome(options=options, executable_path=os.path.abspath("drivers/chromedriver"))
+    driver = webdriver.Chrome(options=options, executable_path=f"{base_dir}drivers/chromedriver")
     driver.set_page_load_timeout(20)
     time.sleep(random.uniform(1, 2))
     try:
@@ -168,12 +170,13 @@ def scrapper(url: str):
         #soup = BeautifulSoup(generated_html, "html.parser")
         outer_html = driver.execute_script("return document.documentElement.outerHTML;")
         #inner_html = driver.execute_script("return document.documentElement.innerHTML;")
-        f = open(os.path.join(settings.BASE_DIR, "scrapper/text_files/")+"movies.html", "w")
+        f = open(f"{base_dir}scrapper_dev/text_files/movies.html", "w")
         f.write(str(outer_html))
         f.close()
-    except:
-        print(f"Error ocured when scrapping {url}\n")
+    except TimeoutException:
+        print(f"Timeout occured when scrapping {url}\n")
         print(">>>>>>>>>>>>>> Scrapper finished in: ", time.time() - start_time)
+        driver.quit()
         return False
 
 
@@ -186,7 +189,6 @@ def scrapper(url: str):
             links = soup.find_all("a", class_="module_link")
             sleep(1)'''
 
-    print("Done.")
     print(">>>>>>>>>>>>>> Scrapper finished in: ", time.time() - start_time)
     driver.quit()
     return True

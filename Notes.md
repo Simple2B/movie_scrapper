@@ -13,4 +13,7 @@
 4. Database schema: dead sites, long response sites, protected sites etc. ---- include difficult cases in errors
 5. We need full cyrberlockers list ----- we have it already
 
-#
+# 3d
+
+1. Sometimes page is not correctly or not fully loaded and nothing is found. Though if we check website with
+   common browser - we can easely find a cyberlocker. In this case it we need just to repeat scrapping.

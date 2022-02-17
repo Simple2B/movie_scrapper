@@ -1,11 +1,9 @@
-import os
 import time
-from .ms_scrapper import scrapper  # get_pages
-from .ms_parser import get_link  # , filter_potential_cyberlockers
-from app.config import settings
+from ms_scrapper import scrapper  # get_pages
+from ms_parser import get_link  # , filter_potential_cyberlockers
 
 
-text_files_path = str(os.path.join(settings.BASE_DIR, "scrapper/text_files/"))
+base_dir = "/home/linp/simple2b/movie_scrap/scrapper_dev/text_files/"
 
 
 def write_links(urls_list):
@@ -13,8 +11,8 @@ def write_links(urls_list):
     print(">>>>>>>>>>>>>> Parser start time: ", time.localtime())
     sites_count = 0
     read_lockers = urls_list
-    f = open(text_files_path+"potential_cyberlockers.txt", "w")
-    pcfu = open(text_files_path+"potential_cyberlockers_full_urls.txt", "w")
+    f = open(f"{base_dir}potential_cyberlockers.txt", "w")
+    pcfu = open(f"{base_dir}potential_cyberlockers_full_urls.txt", "w")
 
     for website in read_lockers:
         if len(website.split("/")[2].split(".")) >= 3:
@@ -31,7 +29,7 @@ def write_links(urls_list):
             pcfu.write(err)
             continue
         else:
-            potential_links = get_link(text_files_path+"movies.html", website_name)
+            potential_links = get_link(f"{base_dir}movies.html", website_name)
             print(potential_links[0], "\n", len(potential_links[0]))
             print(potential_links[1], "\n", len(potential_links[1]))
 

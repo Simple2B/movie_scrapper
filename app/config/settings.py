@@ -1,15 +1,15 @@
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Union
 
-from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
+from pydantic import AnyHttpUrl, BaseSettings, validator
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 class Settings(BaseSettings):
-    SERVER_NAME: str = "FastAPI_scrapper" #os.environ.get("SERVER_NAME") # "FastAPI scrapper"
-    #SERVER_HOST: AnyHttpUrl
+    SERVER_NAME: str = "FastAPI_scrapper"  # os.environ.get("SERVER_NAME") # "FastAPI scrapper"
+    # SERVER_HOST: AnyHttpUrl
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

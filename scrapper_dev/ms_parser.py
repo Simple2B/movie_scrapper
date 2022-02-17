@@ -1,7 +1,5 @@
-import os
 import time
 import base64
-from app.config import settings
 
 
 trash_words = (
@@ -34,13 +32,13 @@ trash_words = (
 # website_name = "fmovies"
 # website_name = "gowatchseries"
 # website_name = "fusionmovies"
+base_dir = "/home/linp/simple2b/movie_scrap/scrapper_dev/text_files/"
 
 
 def get_link(raw_html_file, website_name="fusionmovies"):
     '''
     Parser function. Reads the file and gets a cyberlocker link.
     '''
-    text_files_path = str(os.path.join(settings.BASE_DIR, "scrapper/text_files/"))
     potential_cyberlockers = []
     pc_full_urls = []
 
@@ -51,7 +49,7 @@ def get_link(raw_html_file, website_name="fusionmovies"):
     read_file = f.read()
     f.close()
 
-    t = open(text_files_path+"potential_cyberlockers_html_parts.txt", "a")  # ## ### write html part ### ## #
+    t = open(f"{base_dir}potential_cyberlockers_html_parts.txt", "a")  # ## ### write html part ### ## #
 
     for html_line in read_file.split():
         try:
