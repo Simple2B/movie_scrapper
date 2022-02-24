@@ -160,17 +160,17 @@ def scrapper(url: str):
     options.add_argument("--remote-debugging-port=9222")
     options.add_argument('log-level=3')
     driver = webdriver.Chrome(options=options, executable_path=f"{base_dir}drivers/chromedriver")
-    driver.set_page_load_timeout(20)
+    driver.set_page_load_timeout(40)
     time.sleep(random.uniform(1, 2))
     try:
         driver.get(url)
-        time.sleep(random.uniform(7, 9))
+        time.sleep(random.uniform(25, 30))
         #WebDriverWait(driver, timeout=600).until(expected_conditions.text_to_be_present_in_element((By.TAG_NAME, "script"), "fstrea"))
         #generated_html = driver.page_source
         #soup = BeautifulSoup(generated_html, "html.parser")
         outer_html = driver.execute_script("return document.documentElement.outerHTML;")
         #inner_html = driver.execute_script("return document.documentElement.innerHTML;")
-        f = open(f"{base_dir}scrapper_dev/text_files/movies.html", "w")
+        f = open(f"{base_dir}scrapper_dev/text_files/fffffmovies1.html", "w")
         f.write(str(outer_html))
         f.close()
     except TimeoutException:
@@ -198,6 +198,6 @@ if __name__ == "__main__":
     '''f = open("movies_links.txt", "r")
     read_lockers = f.read().splitlines()
     f.close()'''
-    url = "https://prmovies.com/american-siege-2021-Watch-online-on-prmovies/"
+    url = "https://fmovies.to/movie/fireheart-0m98r/1-full"
     scrapper(url)
     # get_pages(page)

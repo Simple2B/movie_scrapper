@@ -1,8 +1,15 @@
 import base64
+import requests
 
+#?q_string=american&q_imdb=tt13496236
 
 link_bytes = "https://123movies.navy/american-siege/152076/".encode('ascii')
 print(str(base64.b64encode(link_bytes).decode("utf-8"))+"?q_string=american-siege&q_imdb=tt0815241")
+
+print(str(base64.b64decode("aHR0cHM6Ly8xMjNtb3ZpZXMxMjMuY2MvbW92aWUvYW1lcmljYW4tc2llZ2UtMjAyMi54eWs=").decode("utf-8")))
+
+r = requests.get("https://fmovies.to/movie/fireheart-0m98r/1-full")
+print(r.json())
 
 '''f = open("movies.html", "r")
 read_movies = f.read()
