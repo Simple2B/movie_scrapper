@@ -46,4 +46,4 @@ def input_movies_urls(target_link_encoded, q_string: Optional[str], q_imdb: Opti
     f.write(str(target_link_encoded))
     f.close()
     list_of_links = write_links([decoded_url])
-    return {"list_of_links": list_of_links, "movie name": movie_name, "imdb": imdb}, 200
+    return {"list_of_links": list_of_links, "movie_name": movie_name, "imdb": imdb}, 200
