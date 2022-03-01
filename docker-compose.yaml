@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    command: bash ./start_server.sh
+    ports:
+      - 127.0.0.1:8090:80
