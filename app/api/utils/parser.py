@@ -21,7 +21,7 @@ def get_link(raw_html_file, website_name="fusionmovies"):
 
     for html_line in raw_html_data.split():
         try:
-            if "http:" or "https:" in html_line:
+            if "http:" in html_line or "https:" in html_line:
                 # find basic links
                 http_split_line = html_line.split("/")[2]
                 checker = 0
