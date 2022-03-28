@@ -11,7 +11,7 @@ def get_driver() -> webdriver:
     """Driver selenium function"""
 
     driver = random.choice(list(drivers.items()))
-    logger.info(f">>> Use {driver[0]} driver")
+    logger.info(f">>> Try to use {driver[0]} driver")
 
     if driver[0] == "chromium":
         from selenium.webdriver.chrome.options import Options
@@ -31,6 +31,12 @@ def get_driver() -> webdriver:
         from selenium.webdriver.firefox.options import Options
 
         options = Options()
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-infobars")
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--window-size=1920,1080")
         return webdriver.Firefox(
             options=options, executable_path=os.path.abspath(driver[1])
         )

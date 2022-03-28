@@ -33,8 +33,8 @@ def write_link(url):
                 potential_links = get_link(
                     os.path.join(settings.FILES_PATH, "movies.html"), website_name
                 )
-                logger.info(f"{potential_links[0]} \n {len(potential_links[0])}")
-                logger.info(f"{potential_links[1]} \n {len(potential_links[1])}")
+                # logger.info(f"{potential_links[0]} \n {len(potential_links[0])}")
+                # logger.info(f"{potential_links[1]} \n {len(potential_links[1])}")
                 if len(potential_links[0]) == 0:
                     pc.write(f"NOTHING FOUND => {url}\n")
                 elif (

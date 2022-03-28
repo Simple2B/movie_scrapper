@@ -131,5 +131,5 @@ trash_words = (
 
 drivers = {
     "chromium": "drivers/chromedriver",
-    "firefox": "drivers/geckodriver",
+    # "firefox": "drivers/geckodriver",
 }

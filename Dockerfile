@@ -35,6 +35,13 @@ RUN apt-get -qy --no-install-recommends install \
   && ln -s /opt/firefox/firefox /usr/bin/firefox \
   && rm -f /tmp/firefox-esr.tar.bz2
 
+# configure virtual display
+RUN set -e
+RUN echo "Starting X virtual framebuffer (Xvfb) in background..."
+RUN Xvfb -ac :99 -screen 0 1280x1024x16 > /dev/null 2>&1 &
+RUN export DISPLAY=:99
+RUN exec "$@"
+
 # download drivers
 RUN mkdir drivers/
 RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux32.tar.gz
