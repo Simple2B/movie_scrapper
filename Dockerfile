@@ -1,7 +1,7 @@
 FROM python:3.9
 
 # set working directory
-WORKDIR /app
+WORKDIR /movie-scrapper
 
 # set environment varibles
 ENV PYTHONFAULTHANDLER 1
@@ -35,6 +35,19 @@ RUN apt-get -qy --no-install-recommends install \
   && ln -s /opt/firefox/firefox /usr/bin/firefox \
   && rm -f /tmp/firefox-esr.tar.bz2
 
-COPY app/ .
-COPY drivers/ .
+# download drivers
+RUN mkdir drivers/
+RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux32.tar.gz
+RUN tar -xvzf geckodriver-v0.30.0-linux32.tar.gz
+RUN chmod +x geckodriver
+RUN mv geckodriver drivers/
+RUN rm -rf geckodriver-v0.30.0-linux32.tar.gz
+RUN wget https://chromedriver.storage.googleapis.com/2.44/chromedriver_linux64.zip
+RUN unzip chromedriver_linux64.zip
+RUN chmod +x chromedriver
+RUN mv chromedriver drivers/
+RUN rm -rf chromedriver_linux64.zip
+
+RUN mkdir app/
+COPY app/ app/
 COPY start_server.sh .

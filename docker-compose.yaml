@@ -6,4 +6,4 @@ services:
     restart: unless-stopped
     command: bash ./start_server.sh
     ports:
-      - 127.0.0.1:8090:80
+      - 127.0.0.1:10001:80
