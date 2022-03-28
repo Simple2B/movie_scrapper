@@ -50,19 +50,37 @@ def input_movies_url(
         logger.warning(f"Target link connection error: {err}")
         return JSONResponse(content={"ConnectionError": str(err)}, status_code=400)
 
-    if target_link_response.status_code == 200:
-        logger.info(f"Target link is valid: {target_link_decoded}")
-        return JSONResponse(
-            content={
-                "list_of_links": write_link(target_link_decoded),
-                "movie_name": movie_name,
-                "imdb": imdb,
-            },
-            status_code=200,
-        )
-    else:
+    if target_link_response.status_code == 404:
         logger.warning(f"Target link is not valid: {target_link_decoded}")
         return JSONResponse(
             content={"UnexpectedLinkRequest": target_link_response.status_code},
             status_code=400,
+        )
+    else:
+        logger.info(f"Target link is valid: {target_link_decoded}")
+        dirty_links = []
+        links = []
+        for link in write_link(target_link_decoded):
+            d_link = link.split("ht")
+            for i in d_link:
+                print(i)
+                if i[0:2] == "tp":
+                    if i[-1] == '"':
+                        i = i[0:-2]
+                    dirty_links.append("ht" + i)
+        for link in dirty_links:
+            try:
+                requests.head(link)
+                links.append(dirty_links.pop(link))
+            except:
+                continue
+
+        return JSONResponse(
+            content={
+                "list_of_links": links,
+                "dirty_links": dirty_links,
+                "movie_name": movie_name,
+                "imdb": imdb,
+            },
+            status_code=200,
         )

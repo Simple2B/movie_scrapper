@@ -221,5 +221,5 @@ https://123freemovies.net/watch-the-ice-road-2021-free-123movies.html
 https://www.037hdmovie.com/2021/06/27/the-ice-road-2021-30-%e0%b8%8a%e0%b8%b1%e0%b9%88%e0%b8%a7%e0%b9%82%e0%b8%a1%e0%b8%87%e0%b8%a3%e0%b8%b0%e0%b8%97%
 """
 
-link_bytes = "https://primewire.st/american-siege/".encode("ascii")
+link_bytes = "https://www.gomovies.host/american-siege/".encode("ascii")
 print(str(base64.b64encode(link_bytes).decode("utf-8")))
