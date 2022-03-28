@@ -1,24 +1,15 @@
 import os
 from typing import List, Union
-
 from pydantic import AnyHttpUrl, BaseSettings, validator
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 class Settings(BaseSettings):
-    SERVER_NAME: str = "FastAPI_scrapper"  # os.environ.get("SERVER_NAME") # "FastAPI scrapper"
-    # SERVER_HOST: AnyHttpUrl
+    SERVER_NAME: str = "FastAPI_scrapper"
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
-
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    ENV: str = "production"
-
-    JWT_SECRET: str = "dummy_secret"
-    JWT_ALGORITHM: str = "HS256"
-    JWT_EXP: str = "3600"
+    FILES_PATH = os.path.join(BASE_DIR, "temp/")
+    if not os.path.isdir(FILES_PATH):
+        os.mkdir(FILES_PATH)
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
@@ -30,6 +21,8 @@ class Settings(BaseSettings):
 
     class Config:
         case_sensitive = True
+        env_file = ".env"
+        env_file_encoding = "utf-8"
 
 
-settings = Settings(_env_file=".env", _env_file_encoding="utf-8")
+settings = Settings()

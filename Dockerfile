@@ -15,16 +15,32 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
 ENV PATH="${PATH}:/root/.poetry/bin"
 COPY poetry.lock .
 COPY pyproject.toml .
-
 RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-dev --no-interaction --no-ansi
-# install manually all the missing libraries
-#RUN apt-get install -y gconf-service libasound2 libatk1.0-0 libcairo2 libcups2 libfontconfig1 libgdk-pixbuf2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libxss1 fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils
-#RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-#RUN apt install ./google-chrome-stable_current_amd64.deb
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
-RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-RUN apt-get -y update
-RUN apt-get install -y google-chrome-stable
-RUN apt-get -y autoremove
 
-COPY . .
+# install google chrome
+ARG CHROME_VERSION="google-chrome-stable"
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+  && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+  && apt-get update -qqy \
+  && apt-get -qqy install \
+    ${CHROME_VERSION:-google-chrome-stable} \
+  && rm /etc/apt/sources.list.d/google-chrome.list \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+# install firefox
+ARG FIREFOX_VERSION=latest
+RUN FIREFOX_DOWNLOAD_URL=$(if [ $FIREFOX_VERSION = "latest" ] || [ $FIREFOX_VERSION = "nightly-latest" ] || [ $FIREFOX_VERSION = "devedition-latest" ] || [ $FIREFOX_VERSION = "esr-latest" ]; then echo "https://download.mozilla.org/?product=firefox-$FIREFOX_VERSION-ssl&os=linux64&lang=en-US"; else echo "https://download-installer.cdn.mozilla.net/pub/firefox/releases/$FIREFOX_VERSION/linux-x86_64/en-US/firefox-$FIREFOX_VERSION.tar.bz2"; fi) \
+  && apt-get update -qqy \
+  && apt-get -qqy --no-install-recommends install firefox libavcodec-extra \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
+  && wget --no-verbose -O /tmp/firefox.tar.bz2 $FIREFOX_DOWNLOAD_URL \
+  && apt-get -y purge firefox \
+  && rm -rf /opt/firefox \
+  && tar -C /opt -xjf /tmp/firefox.tar.bz2 \
+  && rm /tmp/firefox.tar.bz2 \
+  && mv /opt/firefox /opt/firefox-$FIREFOX_VERSION \
+  && ln -fs /opt/firefox-$FIREFOX_VERSION/firefox /usr/bin/firefox
+
+COPY app/ .
+COPY drivers/ .
+COPY start_server.sh .

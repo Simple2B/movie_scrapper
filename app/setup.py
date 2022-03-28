@@ -1,18 +1,24 @@
 from fastapi import FastAPI
-#from fastapi_pagination import add_pagination
 from starlette.responses import RedirectResponse
-from app.routers import router
-from app.config import settings
+from .api.routes import scrapper_router
+from .config import settings
 
 
 def create_app() -> FastAPI:
     """Create the application instance"""
     app = FastAPI(title=settings.SERVER_NAME)
-    app.include_router(router)
+    app.include_router(scrapper_router)
 
     @app.get("/")
-    async def root():
+    async def docs() -> RedirectResponse:
         return RedirectResponse(url="/docs")
 
-    #add_pagination(app)
+    @app.get("/routes")
+    async def routes():
+        return {
+            "routes to visit": [
+                {"path": route.path, "name": route.name} for route in app.routes
+            ]
+        }
+
     return app
