@@ -1,24 +1,18 @@
 from fastapi import FastAPI
-from starlette.responses import RedirectResponse
-from .api.routes import scrapper_router
-from .config import settings
+from app.config import settings
+from app.logging import setup_logging
+from app.api.routes import scrapper_router
 
 
 def create_app() -> FastAPI:
     """Create the application instance"""
-    app = FastAPI(title=settings.SERVER_NAME)
+    app = FastAPI(
+        debug=settings.DEBUG,
+        title=settings.APP_NAME,
+        description=settings.APP_DESCRIPTION,
+        version=settings.APP_VERSION,
+        docs_url=settings.DOCS_URL,
+    )
     app.include_router(scrapper_router)
-
-    @app.get("/")
-    async def docs() -> RedirectResponse:
-        return RedirectResponse(url="/docs")
-
-    @app.get("/routes")
-    async def routes():
-        return {
-            "routes to visit": [
-                {"path": route.path, "name": route.name} for route in app.routes
-            ]
-        }
-
+    setup_logging()
     return app

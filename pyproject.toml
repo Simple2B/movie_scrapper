@@ -13,6 +13,7 @@ pydantic = "^1.9.0"
 python-dotenv = "^0.19.2"
 requests = "^2.27.1"
 fake-useragent = "^0.1.11"
+tldextract = "^3.2.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"

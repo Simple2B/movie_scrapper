@@ -1,4 +1,4 @@
-trash_words = (
+trash_words = [
     "www.google-analytics.com",
     "www.googletagmanager.com",
     "schema.org",
@@ -127,9 +127,5 @@ trash_words = (
     ".png",
     ".jpg",
     "/svg",
-)
-
-drivers = {
-    "chromium": "drivers/chromedriver",
-    # "firefox": "drivers/geckodriver",
-}
+    "javascript",
+]

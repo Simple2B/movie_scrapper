@@ -12,7 +12,8 @@
     "pytest",
     "skipif",
     "starlette",
-    "uvicorn"
+    "uvicorn",
+    "virtualenvs"
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.nosetestsEnabled": false,

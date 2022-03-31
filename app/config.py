@@ -4,12 +4,15 @@ from pydantic import AnyHttpUrl, BaseSettings, validator
 
 
 class Settings(BaseSettings):
-    SERVER_NAME: str = "FastAPI_scrapper"
+    DEBUG: bool = True if os.environ.get("DEBUG", "0") == "1" else False
+    APP_NAME: str = "FastAPI_scrapper"
+    APP_DESCRIPTION: str = ""
+    APP_VERSION: str = "0.1.1"
+    DOCS_URL: str = "/"
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    FILES_PATH = os.path.join(BASE_DIR, "temp/")
-    if not os.path.isdir(FILES_PATH):
-        os.mkdir(FILES_PATH)
+    BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "ERROR")
+    JSON_LOGS: bool = True if os.environ.get("JSON_LOGS", "0") == "1" else False
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
