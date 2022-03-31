@@ -51,4 +51,4 @@ def urls_cleanup(domain: str, urls: list) -> list[str]:
     Returns:
         list[str]: list of cleaned links
     """
-    return [url for url in urls if not domain in url and "http" in url]
+    return [url for url in urls if not domain in url]
