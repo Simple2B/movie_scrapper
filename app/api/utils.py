@@ -1,31 +1,10 @@
 import os
-import re
 import base64
 from datetime import datetime
 import pandas as pd
-from tldextract import extract  # accurately separates the gTLD or ccTLD
 from app.logging import logger
 from app.config import settings
 from app.api.schemas import Urls
-
-IGNORED_DOMAINS: list[str] = ["whatsapp"]
-
-
-def get_domain(url) -> str:
-    """Get domain from url
-
-    Args:
-        url (AnyHttpUrl): valid url address
-
-    Returns:
-        str: domain_1.domain_n.com
-    """
-    subdomain, domain, suffix = extract(url)
-    ignored = ["www", "web"]
-    if not subdomain or subdomain.lower() in ignored:
-        return domain
-    pat = r"^(?:{})\.".format("|".join(ignored))
-    return re.sub(pat, "", subdomain)
 
 
 def decode_link(encoded_link: str) -> str:
@@ -54,18 +33,14 @@ def timer(name: str = "Function"):
     return decrement
 
 
-def urls_cleanup(domain: str, urls: list[str]) -> list[str]:
-    """_summary_
-
-    Args:
-        domain (str): target url domain
-        urls (list): list of all links from the page
-
-    Returns:
-        list[str]: list of cleaned links
-    """
-
-    return [url for url in urls if not domain in url]
+def urls_cleanup(data: Urls) -> Urls:
+    result = Urls(target_ulr=data.target_ulr, error=data.error)
+    ignored_domains = settings.IGNORED_DOMAINS + [data.target_ulr]
+    for url in data.urls:
+        for domain in ignored_domains:
+            if not domain.scheme in url.scheme:
+                result.urls += url
+    return result
 
 
 def convert_to_xls(content: Urls):

@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "ERROR")
     JSON_LOGS: bool = True if os.getenv("JSON_LOGS", "0") == "1" else False
     OUTPUT_FILE: str = os.path.join(BASE_DIR, "video_urls.xlsx")
+    IGNORED_DOMAINS: list[AnyHttpUrl] = [
+        "https://api.whatsapp.com",
+    ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
