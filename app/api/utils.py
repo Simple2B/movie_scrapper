@@ -1,3 +1,4 @@
+import os
 import re
 import base64
 from datetime import datetime
@@ -5,9 +6,20 @@ import pandas as pd
 from tldextract import extract  # accurately separates the gTLD or ccTLD
 from app.logging import logger
 from app.config import settings
+from app.api.schemas import Urls
+
+IGNORED_DOMAINS: list[str] = ["whatsapp"]
 
 
-def get_domain(url):
+def get_domain(url) -> str:
+    """Get domain from url
+
+    Args:
+        url (AnyHttpUrl): valid url address
+
+    Returns:
+        str: domain_1.domain_n.com
+    """
     subdomain, domain, suffix = extract(url)
     ignored = ["www", "web"]
     if not subdomain or subdomain.lower() in ignored:
@@ -42,7 +54,7 @@ def timer(name: str = "Function"):
     return decrement
 
 
-def urls_cleanup(domain: str, urls: list) -> list[str]:
+def urls_cleanup(domain: str, urls: list[str]) -> list[str]:
     """_summary_
 
     Args:
@@ -52,12 +64,18 @@ def urls_cleanup(domain: str, urls: list) -> list[str]:
     Returns:
         list[str]: list of cleaned links
     """
+
     return [url for url in urls if not domain in url]
 
 
-def convert_to_xls(content):
-    xls_data = pd.DataFrame(content)
+def convert_to_xls(content: Urls):
+    xls_data = pd.DataFrame(content.dict())
+    if os.path.exists(settings.OUTPUT_FILE):
+        old_xls_data = pd.DataFrame(pd.read_excel(settings.OUTPUT_FILE))
+        xls_data = pd.concat([old_xls_data, xls_data])
     xls_data.to_excel(
-        settings.OUTPUT_FILE, engine="xlsxwriter", columns=xls_data.columns, index=False
+        settings.OUTPUT_FILE,
+        engine="openpyxl",
+        index=False,
     )
     logger.info("Urls was writted to file: {}", settings.OUTPUT_FILE)

@@ -6,15 +6,15 @@ from dotenv import load_dotenv
 
 class Settings(BaseSettings):
     load_dotenv()
-    DEBUG: bool = True if os.environ.get("DEBUG", "0") == "1" else False
+    DEBUG: bool = True if os.getenv("DEBUG", "0") == "1" else False
     APP_NAME: str = "FastAPI_scrapper"
     APP_DESCRIPTION: str = ""
     APP_VERSION: str = "0.1.1"
     DOCS_URL: str = "/"
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "ERROR")
-    JSON_LOGS: bool = True if os.environ.get("JSON_LOGS", "0") == "1" else False
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "ERROR")
+    JSON_LOGS: bool = True if os.getenv("JSON_LOGS", "0") == "1" else False
     OUTPUT_FILE: str = os.path.join(BASE_DIR, "video_urls.xlsx")
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
