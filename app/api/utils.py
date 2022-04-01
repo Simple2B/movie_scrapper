@@ -1,9 +1,10 @@
 import re
 import base64
 from datetime import datetime
+import pandas as pd
 from tldextract import extract  # accurately separates the gTLD or ccTLD
 from app.logging import logger
-from app.api.parse_config import trash_words
+from app.config import settings
 
 
 def get_domain(url):
@@ -52,3 +53,11 @@ def urls_cleanup(domain: str, urls: list) -> list[str]:
         list[str]: list of cleaned links
     """
     return [url for url in urls if not domain in url]
+
+
+def convert_to_xls(content):
+    xls_data = pd.DataFrame(content)
+    xls_data.to_excel(
+        settings.OUTPUT_FILE, engine="xlsxwriter", columns=xls_data.columns, index=False
+    )
+    logger.info("Urls was writted to file: {}", settings.OUTPUT_FILE)

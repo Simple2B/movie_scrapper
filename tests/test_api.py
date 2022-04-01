@@ -16,7 +16,9 @@ def client() -> Generator:
 
 def test_input_movies_url(client: TestClient):
 
-    TEST_URL = "https://123movies.business/film/the-ice-road-S8TeM/"
+    TEST_URL = (
+        "https://movies123.pics/movie/american-siege/fDDlpXGD/C4WslkxN-watch-free.html/"
+    )
     encoded_url = encode_link(TEST_URL)
     response = client.post(f"/scrap/generalist/{encoded_url}")
     assert response

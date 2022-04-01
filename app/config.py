@@ -1,9 +1,11 @@
 import os
 from typing import List, Union
 from pydantic import AnyHttpUrl, BaseSettings, validator
+from dotenv import load_dotenv
 
 
 class Settings(BaseSettings):
+    load_dotenv()
     DEBUG: bool = True if os.environ.get("DEBUG", "0") == "1" else False
     APP_NAME: str = "FastAPI_scrapper"
     APP_DESCRIPTION: str = ""
@@ -13,6 +15,7 @@ class Settings(BaseSettings):
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "ERROR")
     JSON_LOGS: bool = True if os.environ.get("JSON_LOGS", "0") == "1" else False
+    OUTPUT_FILE: str = os.path.join(BASE_DIR, "video_urls.xlsx")
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
