@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from app.logging import logger
 from app.config import settings
 from app.api.schemas import Urls
@@ -22,7 +22,7 @@ def input_movies_url(
         urls = get_links(url)
         urls = urls_cleanup(urls=urls, target_url=url)
         data = Urls(target_ulr=url, urls=urls)
-    except TimeoutException as e:
+    except (TimeoutException, WebDriverException) as e:
         data = Urls(target_ulr=url, error=e.msg)
         logger.warning("Error on target URL: {}", url)
 
