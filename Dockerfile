@@ -24,17 +24,6 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     apt-get -yqq install google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
 
-# install firefox
-RUN apt-get -qy --no-install-recommends install \
-     $(apt-cache depends firefox | grep Depends | sed "s/.*ends:\ //" | tr '\n' ' ') \
-  && rm -rf /var/lib/apt/lists/* \
-  && cd /tmp \
-  && wget --no-check-certificate -O firefox-esr.tar.bz2 \
-    'https://download.mozilla.org/?product=firefox-esr-latest&os=linux64&lang=en-US' \
-  && tar -xjf firefox-esr.tar.bz2 -C /opt/ \
-  && ln -s /opt/firefox/firefox /usr/bin/firefox \
-  && rm -f /tmp/firefox-esr.tar.bz2
-
 # configure virtual display
 RUN set -e
 RUN echo "Starting X virtual framebuffer (Xvfb) in background..."
@@ -44,12 +33,7 @@ RUN exec "$@"
 
 # download drivers
 RUN mkdir drivers/
-RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux32.tar.gz
-RUN tar -xvzf geckodriver-v0.30.0-linux32.tar.gz
-RUN chmod +x geckodriver
-RUN mv geckodriver drivers/
-RUN rm -rf geckodriver-v0.30.0-linux32.tar.gz
-RUN wget https://chromedriver.storage.googleapis.com/2.44/chromedriver_linux64.zip
+RUN wget https://chromedriver.storage.googleapis.com/100.0.4896.60/chromedriver_linux64.zip 
 RUN unzip chromedriver_linux64.zip
 RUN chmod +x chromedriver
 RUN mv chromedriver drivers/
