@@ -13,7 +13,7 @@ def get_driver() -> webdriver:
         webdriver: Chrome
     """
 
-    logger.info(f"Try to use chromium driver.")
+    logger.info("Try to use chromium driver.")
 
     from selenium.webdriver.chrome.options import Options
 

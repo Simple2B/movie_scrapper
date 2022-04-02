@@ -38,7 +38,7 @@ def urls_cleanup(data: Urls) -> Urls:
     ignored_domains = settings.IGNORED_DOMAINS + [data.target_ulr]
     for url in data.urls:
         for domain in ignored_domains:
-            if not domain.scheme in url.scheme:
+            if domain.scheme not in url.scheme:
                 result.urls += url
     return result
 
