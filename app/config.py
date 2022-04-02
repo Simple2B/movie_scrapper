@@ -3,21 +3,26 @@ from typing import List, Union
 from pydantic import AnyHttpUrl, BaseSettings, validator
 from dotenv import load_dotenv
 
+load_dotenv()
+
 
 class Settings(BaseSettings):
-    load_dotenv()
-    DEBUG: bool = True if os.getenv("DEBUG", "0") == "1" else False
+    DEBUG: bool = os.getenv("DEBUG", "0") == "1"
     APP_NAME: str = "FastAPI_scrapper"
     APP_DESCRIPTION: str = ""
     APP_VERSION: str = "0.1.1"
     DOCS_URL: str = "/"
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    STORAGE_FOLDER: str = "data"
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "ERROR")
-    JSON_LOGS: bool = True if os.getenv("JSON_LOGS", "0") == "1" else False
-    OUTPUT_FILE: str = os.path.join(BASE_DIR, "video_urls.xlsx")
-    IGNORED_DOMAINS: list[AnyHttpUrl] = [
-        "https://api.whatsapp.com",
+    JSON_LOGS: bool = os.getenv("JSON_LOGS", "0") == "1"
+    OUTPUT_FILE: str = os.path.join(
+        os.path.join(BASE_DIR, STORAGE_FOLDER), "video_urls.xlsx"
+    )
+    IGNORED_DOMAINS: list[str] = [
+        "whatsapp.com",
+        "facebook.com",
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
@@ -29,7 +34,7 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     class Config:
-        case_sensitive = True
+        case_sensitive = False
         env_file = ".env"
         env_file_encoding = "utf-8"
 

@@ -1,6 +1,7 @@
 import os
 import base64
 from datetime import datetime
+from urllib.parse import urlparse
 import pandas as pd
 from app.logging import logger
 from app.config import settings
@@ -33,24 +34,49 @@ def timer(name: str = "Function"):
     return decrement
 
 
-def urls_cleanup(data: Urls) -> Urls:
-    result = Urls(target_ulr=data.target_ulr, error=data.error)
-    ignored_domains = settings.IGNORED_DOMAINS + [data.target_ulr]
-    for url in data.urls:
+def url_belong_to_domain(url: str, domain: str) -> bool:
+    if not domain:
+        return False
+    uri = urlparse(url)
+    host = uri.hostname
+    if not host or domain not in host:
+        return False
+    len_sub_domain = len(host) - len(domain)
+
+    return host[len_sub_domain:] == domain
+
+
+def urls_cleanup(urls: list[str], target_url: str) -> list[str]:
+    target_host = urlparse(target_url).hostname
+    ignored_domains = settings.IGNORED_DOMAINS + [target_host]
+    result = []
+    for url in urls:
         for domain in ignored_domains:
-            if domain.scheme not in url.scheme:
-                result.urls += url
+            if url_belong_to_domain(url, domain):
+                break
+        else:
+            result += [url]
     return result
 
 
 def convert_to_xls(content: Urls):
     xls_data = pd.DataFrame(content.dict())
-    if os.path.exists(settings.OUTPUT_FILE):
-        old_xls_data = pd.DataFrame(pd.read_excel(settings.OUTPUT_FILE))
-        xls_data = pd.concat([old_xls_data, xls_data])
+    file_name = settings.OUTPUT_FILE
+    if os.path.exists(file_name):
+        logger.info("Excel file [{}] already exists", file_name)
+        file_xls_data = pd.DataFrame(pd.read_excel(file_name))
+        num_before = file_xls_data.urls.count()
+        xls_data.update(file_xls_data)
+        num_after = xls_data.urls.count()
+        if num_after > num_before:
+            logger.info(
+                "For target {} found new {} urls",
+                content.target_ulr,
+                num_after - num_before,
+            )
     xls_data.to_excel(
-        settings.OUTPUT_FILE,
+        file_name,
         engine="openpyxl",
         index=False,
     )
-    logger.info("Urls was writted to file: {}", settings.OUTPUT_FILE)
+    logger.info("Urls was writted to file: {}", file_name)
