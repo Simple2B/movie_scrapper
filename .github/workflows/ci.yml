@@ -35,5 +35,4 @@ jobs:
           poetry run flake8 . --count --exit-zero --max-complexity=10 --statistics
       - name: Run Flask tests
         run: |
-          poetry run pytest tests/test_auth.py
-          
+          poetry run python -m pytest
