@@ -7,7 +7,7 @@ from app.api.schemas import Urls
 from app.api.utils import decode_link, urls_cleanup, convert_to_xls
 
 
-scrapper_router = APIRouter(prefix="/scrap")
+scrapper_router = APIRouter(prefix="/api")
 
 
 @scrapper_router.post("/generalist/{target_link_encoded}", response_model=Urls)
