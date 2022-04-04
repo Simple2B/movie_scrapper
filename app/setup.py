@@ -11,7 +11,7 @@ def create_app() -> FastAPI:
         title=settings.APP_NAME,
         description=settings.APP_DESCRIPTION,
         version=settings.APP_VERSION,
-        docs_url=settings.DOCS_URL,
+        openapi_prefix=settings.OPENAPI_PREFIX,
     )
     app.include_router(scrapper_router)
     setup_logging()
