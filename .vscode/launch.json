@@ -11,9 +11,6 @@
       "module": "uvicorn",
       "args": ["app.main:app", "--reload"],
       "jinja": true,
-      "env": {
-        "ENV": "develop"
-      }
     }
   ]
 }
