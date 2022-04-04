@@ -50,7 +50,7 @@ def test_input_movies_url(client: TestClient, monkeypatch):
 
     encoded_url = encode_link(TEST_URL)
 
-    response = client.post(f"/scrap/generalist/{encoded_url}")
+    response = client.post(f"/api/generalist/{encoded_url}")
     assert response
 
 
@@ -94,7 +94,7 @@ def test_all_urls(client: TestClient):
             if line.startswith("#"):
                 continue
             encoded_url = encode_link(line)
-            response = client.post(f"/scrap/generalist/{encoded_url}")
+            response = client.post(f"/api/generalist/{encoded_url}")
             assert response
             result = Urls.parse_obj(response.json())
             write_test_result(result)
