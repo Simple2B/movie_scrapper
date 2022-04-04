@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     APP_NAME: str = "FastAPI_scrapper"
     APP_DESCRIPTION: str = ""
     APP_VERSION: str = "0.1.1"
-    DOCS_URL: str = "/api"
+    OPENAPI_URL: str = "/api/openapi.json"
+    DOCS_URL: str = "/api/docs"
+    SWAGGER_UI_OAUTH2_REDIRECT_URL: str = "/api/docs/oauth2-redirect"
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     STORAGE_FOLDER: str = "data"
