@@ -1,4 +1,3 @@
-import requests
 from fastapi import APIRouter
 from base64 import binascii
 from selenium.common.exceptions import TimeoutException, WebDriverException
@@ -27,20 +26,21 @@ def input_movies_url(
         return Urls(error=str(err)), 400
 
     try:
-        data = Urls(target_ulr=url)
-        urls: list[str] = get_links(url)
-        data.urls = urls
-        dirty_urls_count: int = len(urls)
-        data: Urls = urls_cleanup(data)
+        Urls(target_ulr=url)
     except ValidationError as err:
         logger.error("Incoming URL [{}] is broken.", url)
-        return Urls(error=str(err))
+        return Urls(error=str(err)), 403
+
+    try:
+        urls: list[str] = get_links(url)
+        dirty_urls_count: int = len(urls)
+        data: Urls = urls_cleanup(Urls(target_ulr=url, urls=urls))
     except (
         TimeoutException,
         WebDriverException,
     ) as e:
         logger.error("Failed to parse page from url [{}].", url)
-        return Urls(target_url=url, error=e.msg)
+        return Urls(target_url=url, error=e.msg), 404
 
     if not data.urls:
         data.error = "[{}] href tags found, but did not pass moderation.".format(
@@ -50,4 +50,4 @@ def input_movies_url(
     if settings.DEBUG and data.urls:
         convert_to_xls(file_name=settings.OUTPUT_XLSX, content=data)
 
-    return data
+    return data, 200

@@ -22,9 +22,22 @@ class Settings(BaseSettings):
     OUTPUT_XLSX: str = os.path.join(
         os.path.join(BASE_DIR, STORAGE_FOLDER), "video_urls.xlsx"
     )
+    IGNORED_EXTENSIONS: list[str] = [
+        ".jpg",
+        ".jpeg",
+        ".ico",
+        ".png",
+        ".svg",
+        ".css",
+        ".js",
+        "/svg",
+        "/xlink",
+        ".config_resp",
+    ]
     IGNORED_DOMAINS: list[str] = [
         "whatsapp.com",
         "facebook.com",
+        "fb.me",
         "youtube.com",
         "google.com",
         "twitter.com",
@@ -35,9 +48,20 @@ class Settings(BaseSettings):
         "pinterest.com",
         "cloudflare.com",
         "googleapis.com",
+        "google-analytics.com",
+        "googletagmanager.com",
         "telegram.me",
         "tmdb.org",
         "reddit.com",
+        "schema.org",
+        "gstatic.com",
+        "w3.org",
+        "w.org",
+        "littlecdn.com",
+        "amung.us",
+        "tmdb.org",
+        "addthis.com",
+        "histats.com",
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)

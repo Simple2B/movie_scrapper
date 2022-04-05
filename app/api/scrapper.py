@@ -1,8 +1,8 @@
 import os
+import re
 import random
 import time
 from selenium import webdriver
-from bs4 import BeautifulSoup as bs4
 from app.logging import logger
 from app.api.utils import timer
 
@@ -50,9 +50,7 @@ def get_links(url: str) -> list[str]:
         driver.get(url)
         time.sleep(random.uniform(7, 9))
         full_html = driver.execute_script("return document.documentElement.outerHTML;")
-        soup = bs4(full_html, "html.parser")
-        href_tags = soup.find_all(href=True)
-        # a_tags = driver.find_elements_by_xpath("//a[@href]")
-        return [tag["href"] for tag in href_tags]
+        links = re.findall('"((http|ftp)s?://.*?)"', full_html)
+        return [link[0] for link in links]
     finally:
         driver.quit()

@@ -2,6 +2,7 @@ import os
 import base64
 from datetime import datetime
 import pandas as pd
+from tld import get_tld
 from app.logging import logger
 from app.config import settings
 from app.api.schemas import Urls
@@ -43,15 +44,26 @@ def url_belong_to_domain(host: str, ignored_domain: str) -> bool:
 def urls_cleanup(data: Urls) -> Urls:
     logger.info("Cleanup detected urls from [{}].", data.target_ulr)
     ignored_domains = settings.IGNORED_DOMAINS + [data.target_ulr.host]
+    urls: list[str] = []
     cleaned_urls: list[str] = []
     count_deleted: int = 0
     for url in data.urls:
         for domain in ignored_domains:
-            if url_belong_to_domain(host=url.host, ignored_domain=domain):
+            if url_belong_to_domain(
+                host=get_tld(url, as_object=True).fld, ignored_domain=domain
+            ):
+                count_deleted += 1
+                break
+        else:
+            urls += [url]
+    for url in urls:
+        for extension in settings.IGNORED_EXTENSIONS:
+            if url.endswith(extension):
                 count_deleted += 1
                 break
         else:
             cleaned_urls += [url]
+
     logger.info("[{}] url(s) deleted.", count_deleted)
     return Urls(target_ulr=data.target_ulr, urls=cleaned_urls)
 
