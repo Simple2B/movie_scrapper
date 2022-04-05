@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     IGNORED_DOMAINS: list[str] = [
         "whatsapp.com",
         "facebook.com",
+        "facebook.net",
         "fb.me",
         "youtube.com",
         "google.com",
@@ -62,6 +63,11 @@ class Settings(BaseSettings):
         "tmdb.org",
         "addthis.com",
         "histats.com",
+        "data-vocabulary.org",
+        "fayanka.com",
+        "ddos-guard.net/",
+        "gmpg.org",
+        "gearbest.com",
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
