@@ -1,10 +1,7 @@
 import os
-
 import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
-from dotenv import load_dotenv
-
 from app.setup import create_app
 from app.api.utils import encode_link
 from app.api.schemas import Urls
@@ -47,24 +44,22 @@ def test_input_movies_url(client: TestClient, monkeypatch):
     import app.api.scrapper as scrap
 
     monkeypatch.setattr(scrap, "get_links", get_test_urls)
-
     encoded_url = encode_link(TEST_URL)
-
     response = client.post(f"/api/generalist/{encoded_url}")
     assert response
 
 
-def write_test_result(result: Urls):
+def write_test_result(file_name: str, content: Urls):
     import pandas as pd
-    from app.config import settings
 
-    res_data = dict(
-        target_url=str(result.target_ulr), num_urls=len(result.urls), error=result.error
-    )
-    xls_data = pd.DataFrame([res_data])
-    file_name = os.path.join(
-        os.path.join(settings.BASE_DIR, settings.STORAGE_FOLDER),
-        "test_results.xlsx",
+    xls_data = pd.DataFrame(
+        [
+            dict(
+                target_url=str(content.target_ulr),
+                num_urls=len(content.urls),
+                error=content.error,
+            )
+        ]
     )
     if os.path.exists(file_name):
         logger.info("Excel file [{}] already exists", file_name)
@@ -77,24 +72,22 @@ def write_test_result(result: Urls):
     )
 
 
-load_dotenv()
-
-
 @pytest.mark.skipif(
     not os.environ.get("SCRAP_TEST", None), reason="SCRAP_TEST disabled"
 )
 def test_all_urls(client: TestClient):
+    from app.config import settings
 
     ALL_LINKS_FILE = "target_links.txt"
-    with open(ALL_LINKS_FILE, "r") as f:
-        for line in f:
-            if not line:
+    TEST_RESULT_FILE: str = os.path.join(
+        os.path.join(settings.BASE_DIR, settings.STORAGE_FOLDER), "test_results.xlsx"
+    )
+    with open(ALL_LINKS_FILE, "r") as file:
+        for line in file:
+            if not line or line.startswith("#"):
                 continue
-            line = line.strip()
-            if line.startswith("#"):
-                continue
-            encoded_url = encode_link(line)
+            encoded_url = encode_link(line.strip())
             response = client.post(f"/api/generalist/{encoded_url}")
             assert response
-            result = Urls.parse_obj(response.json())
-            write_test_result(result)
+            data = Urls.parse_obj(response.json())
+            write_test_result(file_name=TEST_RESULT_FILE, content=data)

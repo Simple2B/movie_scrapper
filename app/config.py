@@ -19,12 +19,25 @@ class Settings(BaseSettings):
     STORAGE_FOLDER: str = "data"
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "ERROR")
     JSON_LOGS: bool = os.getenv("JSON_LOGS", "0") == "1"
-    OUTPUT_FILE: str = os.path.join(
+    OUTPUT_XLSX: str = os.path.join(
         os.path.join(BASE_DIR, STORAGE_FOLDER), "video_urls.xlsx"
     )
     IGNORED_DOMAINS: list[str] = [
         "whatsapp.com",
         "facebook.com",
+        "youtube.com",
+        "google.com",
+        "twitter.com",
+        "t.me",
+        "statcounter.com",
+        "rtmark.net",
+        "bootstrapcdn.com",
+        "pinterest.com",
+        "cloudflare.com",
+        "googleapis.com",
+        "telegram.me",
+        "tmdb.org",
+        "reddit.com",
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)

@@ -71,6 +71,6 @@ class LenientList(List[ItemT]):
 
 
 class Urls(BaseModel):
-    target_ulr: AnyHttpUrl
+    target_ulr: AnyHttpUrl = None
     urls: LenientList[AnyHttpUrl] = []
     error: str = ""

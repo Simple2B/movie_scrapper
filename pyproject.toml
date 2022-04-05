@@ -16,6 +16,7 @@ fake-useragent = "^0.1.11"
 loguru = "^0.6.0"
 pandas = "^1.4.1"
 openpyxl = "^3.0.9"
+beautifulsoup4 = "^4.10.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"

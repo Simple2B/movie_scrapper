@@ -1,7 +1,6 @@
 import os
 import base64
 from datetime import datetime
-from urllib.parse import urlparse
 import pandas as pd
 from app.logging import logger
 from app.config import settings
@@ -34,49 +33,41 @@ def timer(name: str = "Function"):
     return decrement
 
 
-def url_belong_to_domain(url: str, domain: str) -> bool:
-    if not domain:
+def url_belong_to_domain(host: str, ignored_domain: str) -> bool:
+    if not ignored_domain or not host or ignored_domain not in host:
         return False
-    uri = urlparse(url)
-    host = uri.hostname
-    if not host or domain not in host:
-        return False
-    len_sub_domain = len(host) - len(domain)
-
-    return host[len_sub_domain:] == domain
+    len_sub_domain = len(host) - len(ignored_domain)
+    return host[len_sub_domain:] == ignored_domain
 
 
-def urls_cleanup(urls: list[str], target_url: str) -> list[str]:
-    target_host = urlparse(target_url).hostname
-    ignored_domains = settings.IGNORED_DOMAINS + [target_host]
-    result = []
-    for url in urls:
+def urls_cleanup(data: Urls) -> Urls:
+    logger.info("Cleanup detected urls from [{}].", data.target_ulr)
+    ignored_domains = settings.IGNORED_DOMAINS + [data.target_ulr.host]
+    cleaned_urls: list[str] = []
+    count_deleted: int = 0
+    for url in data.urls:
         for domain in ignored_domains:
-            if url_belong_to_domain(url, domain):
+            if url_belong_to_domain(host=url.host, ignored_domain=domain):
+                count_deleted += 1
                 break
         else:
-            result += [url]
-    return result
+            cleaned_urls += [url]
+    logger.info("[{}] url(s) deleted.", count_deleted)
+    return Urls(target_ulr=data.target_ulr, urls=cleaned_urls)
 
 
-def convert_to_xls(content: Urls):
+def convert_to_xls(file_name: str, content: Urls):
     xls_data = pd.DataFrame(content.dict())
-    file_name = settings.OUTPUT_FILE
+    urls_count = xls_data.urls.count()
     if os.path.exists(file_name):
-        logger.info("Excel file [{}] already exists", file_name)
+        logger.info("Excel file [{}] already exists.", file_name)
         file_xls_data = pd.DataFrame(pd.read_excel(file_name))
-        num_before = file_xls_data.urls.count()
-        xls_data.update(file_xls_data)
-        num_after = xls_data.urls.count()
-        if num_after > num_before:
-            logger.info(
-                "For target {} found new {} urls",
-                content.target_ulr,
-                num_after - num_before,
-            )
+        xls_data = pd.concat([file_xls_data, xls_data])
     xls_data.to_excel(
         file_name,
         engine="openpyxl",
         index=False,
     )
-    logger.info("Urls was writted to file: {}", file_name)
+    logger.info(
+        "{0} urls was detected and writted to file [{1}]", urls_count, file_name
+    )
