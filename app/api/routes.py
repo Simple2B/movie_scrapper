@@ -23,13 +23,13 @@ def input_movies_url(
         logger.info("Incoming URL detected: [{}].", url)
     except (binascii.Error, UnicodeDecodeError) as err:
         logger.error("Failed to decode incoming data [{}].", target_link_encoded)
-        return Urls(error=str(err)), 400
+        return Urls(error=str(err))
 
     try:
         Urls(target_ulr=url)
     except ValidationError as err:
         logger.error("Incoming URL [{}] is broken.", url)
-        return Urls(error=str(err)), 403
+        return Urls(error=str(err))
 
     try:
         urls: list[str] = get_links(url)
@@ -40,7 +40,7 @@ def input_movies_url(
         WebDriverException,
     ) as e:
         logger.error("Failed to parse page from url [{}].", url)
-        return Urls(target_url=url, error=e.msg), 404
+        return Urls(target_url=url, error=e.msg)
 
     if not data.urls:
         data.error = "[{}] href tags found, but did not pass moderation.".format(
@@ -50,4 +50,4 @@ def input_movies_url(
     if settings.DEBUG and data.urls:
         convert_to_xls(file_name=settings.OUTPUT_XLSX, content=data)
 
-    return data, 200
+    return data
