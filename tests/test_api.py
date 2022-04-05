@@ -17,7 +17,7 @@ def client() -> Generator:
 
 def test_input_movies_url(client: TestClient, monkeypatch):
 
-    TEST_URL = "https://vwv.papystreaming.stream/american-siege/"
+    TEST_URL = "https://123movie.so/watch-movies/american-siege.html"
     TEST_URLS = [
         "https://123movie.so/",
         "https://123movie.so/",
