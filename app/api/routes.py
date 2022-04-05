@@ -40,7 +40,7 @@ def input_movies_url(
         WebDriverException,
     ) as e:
         logger.error("Failed to parse page from url [{}].", url)
-        return Urls(target_url=url, error=e.msg)
+        return Urls(target_ulr=url, error=e.msg)
 
     if not data.urls:
         data.error = "[{}] href tags found, but did not pass moderation.".format(

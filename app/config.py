@@ -65,7 +65,7 @@ class Settings(BaseSettings):
         "histats.com",
         "data-vocabulary.org",
         "fayanka.com",
-        "ddos-guard.net/",
+        "ddos-guard.net",
         "gmpg.org",
         "gearbest.com",
     ]
