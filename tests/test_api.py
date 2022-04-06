@@ -1,5 +1,6 @@
 import os
 import pytest
+import json
 from typing import Generator
 from fastapi.testclient import TestClient
 from app.setup import create_app
@@ -17,36 +18,38 @@ def client() -> Generator:
 
 def test_input_movies_url(client: TestClient, monkeypatch):
 
-    TEST_URL = "https://123movie.so/watch-movies/american-siege.html"
+    BROKEN_ENCODED_STR = "abcdef123456"
+    TEST_URL = "https://www.google.com/"
+    TEST_BROKEN_URL = "httwww.google"
+
     TEST_URLS = [
-        "https://123movie.so/",
-        "https://123movie.so/",
-        "https://123movie.so/watch-movies/american-siege.html#",
-        "https://123movie.so/cinema-movies.html",
-        "https://123movie.so/recently-added.html",
-        "https://123movie.so/year/2020.html",
-        "https://123movie.so/genres.html",
-        "https://123movie.so/genre/action.html",
-        "https://123movie.so/genre/action-adventure.html",
-        "https://123movie.so/genre/adult.html",
-        "https://123movie.so/genre/adventure.html",
-        "https://123movie.so/genre/animation.html",
-        "https://123movie.so/genre/biography.html",
-        "https://123movie.so/genre/browse-movies-by-genre.html",
-        "https://hacker.storage.site/path/to/movie1.avi",
-        "https://hacker.storage.site/path/to/movie2.avi",
-        "https://hacker.storage.site/path/to/movie3.avi",
+        "https://www.google.com/",
+        "https://mail.google.com/mail",
+        "https://api.google.com/",
+        "https://api.google.com/",
+        "bad_urls_architecture",
+        "https://github.com/",
+        "https://gitlab.com/",
     ]
 
     def get_test_urls(*argv, **args):
         return TEST_URLS
 
-    import app.api.scrapper as scrap
+    response = client.post(f"/api/generalist/{BROKEN_ENCODED_STR}")
+    assert response.status_code == 400
 
-    monkeypatch.setattr(scrap, "get_links", get_test_urls)
+    encoded_url = encode_link(TEST_BROKEN_URL)
+    response = client.post(f"/api/generalist/{encoded_url}")
+    assert response.status_code == 400
+
+    import app.api.scrapper as SC
+
+    monkeypatch.setattr(SC, "parse_page_to_links", get_test_urls)
+
     encoded_url = encode_link(TEST_URL)
     response = client.post(f"/api/generalist/{encoded_url}")
     assert response
+    assert len(json.loads(response.content)["urls"]) == 2
 
 
 def write_test_result(file_name: str, content: Urls):
@@ -55,7 +58,7 @@ def write_test_result(file_name: str, content: Urls):
     xls_data = pd.DataFrame(
         [
             dict(
-                target_url=str(content.target_ulr),
+                target_url=str(content.target_url),
                 num_urls=len(content.urls),
                 error=content.error,
             )

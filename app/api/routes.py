@@ -17,12 +17,12 @@ scrapper_router = APIRouter(prefix="/api")
 async def input_movies_url(
     target_link_encoded: str,
 ) -> Urls:
-    from app.api.scrapper import get_links
+    from app.api.scrapper import parse_page_to_links, get_page
 
     try:
         url = decode_link(target_link_encoded)
         logger.info("Incoming URL detected: [{}].", url)
-        data = Urls(target_ulr=url)
+        data = Urls(target_url=url)
     except (binascii.Error, UnicodeDecodeError) as err:
         data = Urls(error=str(err))
         logger.error("Failed to decode incoming data [{}].", target_link_encoded)
@@ -37,7 +37,7 @@ async def input_movies_url(
         )
 
     try:
-        data.urls = get_links(data.target_ulr)
+        data.urls = parse_page_to_links(get_page(data.target_url))
         dirty_urls_count: int = len(data.urls)
         data = urls_cleanup(data)
     except (
@@ -45,7 +45,7 @@ async def input_movies_url(
         WebDriverException,
     ) as e:
         data.error = e.msg
-        logger.error("Failed to parse page from url [{}].", data.target_ulr)
+        logger.error("Failed to parse page from url [{}].", data.target_url)
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=data.dict())
 
     if not data.urls:
@@ -54,6 +54,6 @@ async def input_movies_url(
         )
 
     if settings.DEBUG and data.urls:
-        convert_to_xls(file_name=settings.OUTPUT_XLSX, content=data)
+        convert_to_xls(file_path=settings.OUTPUT_XLSX, content=data.dict())
 
     return data

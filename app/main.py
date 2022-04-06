@@ -1,3 +1,4 @@
+#!.venv/bin/python
 import uvicorn
 from app.setup import create_app
 

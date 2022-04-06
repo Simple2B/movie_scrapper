@@ -41,12 +41,12 @@ def url_belong_to_domain(host: str, ignored_domain: str) -> bool:
 
 
 def urls_cleanup(data: Urls) -> Urls:
-    data: Urls = Urls(target_ulr=data.target_ulr, urls=data.urls, error=data.error)
-    logger.info("Cleanup detected urls from [{}].", data.target_ulr)
+    data: Urls = Urls(target_url=data.target_url, urls=data.urls, error=data.error)
+    logger.info("Cleanup detected urls from [{}].", data.target_url)
     ignored_domains = settings.IGNORED_DOMAINS + [
         ".".join(
-            data.target_ulr.host.split(".")[
-                -(len(data.target_ulr.tld.split(".")) + 1) :
+            data.target_url.host.split(".")[
+                -(len(data.target_url.tld.split(".")) + 1) :
             ]
         )
     ]
@@ -72,21 +72,21 @@ def urls_cleanup(data: Urls) -> Urls:
             cleaned_urls += [url]
 
     logger.info("[{}] url(s) deleted.", count_deleted)
-    return Urls(target_ulr=data.target_ulr, urls=cleaned_urls, error=data.error)
+    return Urls(target_url=data.target_url, urls=cleaned_urls, error=data.error)
 
 
-def convert_to_xls(file_name: str, content: Urls):
-    xls_data = pd.DataFrame(content.dict())
+def convert_to_xls(file_path: str, content: dict):
+    xls_data = pd.DataFrame(content)
     urls_count = xls_data.urls.count()
-    if os.path.exists(file_name):
-        logger.info("Excel file [{}] already exists.", file_name)
-        file_xls_data = pd.DataFrame(pd.read_excel(file_name))
+    if os.path.exists(file_path):
+        logger.info("Excel file [{}] already exists.", file_path)
+        file_xls_data = pd.DataFrame(pd.read_excel(file_path))
         xls_data = pd.concat([file_xls_data, xls_data])
     xls_data.to_excel(
-        file_name,
+        file_path,
         engine="openpyxl",
         index=False,
     )
     logger.info(
-        "{0} urls was detected and writted to file [{1}]", urls_count, file_name
+        "{0} urls was detected and writted to file [{1}]", urls_count, file_path
     )

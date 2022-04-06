@@ -17,10 +17,14 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     STORAGE_FOLDER: str = "data"
+    DRIVERS_FOLDER: str = "drivers"
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "ERROR")
     JSON_LOGS: bool = os.getenv("JSON_LOGS", "0") == "1"
     OUTPUT_XLSX: str = os.path.join(
         os.path.join(BASE_DIR, STORAGE_FOLDER), "video_urls.xlsx"
+    )
+    CHROME_DRIVER_PATH: str = os.path.join(
+        os.path.join(BASE_DIR, DRIVERS_FOLDER), "chromedriver"
     )
     IGNORED_EXTENSIONS: list[str] = [
         ".jpg",
@@ -33,11 +37,16 @@ class Settings(BaseSettings):
         "/svg",
         "/xlink",
         ".config_resp",
+        ".gif",
+        ".woff",
+        ".eot",
+        ".ttf",
     ]
     IGNORED_DOMAINS: list[str] = [
         "whatsapp.com",
         "facebook.com",
         "facebook.net",
+        "instagram.com",
         "fb.me",
         "youtube.com",
         "google.com",
@@ -51,6 +60,8 @@ class Settings(BaseSettings):
         "googleapis.com",
         "google-analytics.com",
         "googletagmanager.com",
+        "googleadservices.com",
+        "googleusercontent.com",
         "telegram.me",
         "tmdb.org",
         "reddit.com",
@@ -59,6 +70,8 @@ class Settings(BaseSettings):
         "w3.org",
         "w.org",
         "littlecdn.com",
+        "stackpathcdn.com",
+        "gbtcdn.com",
         "amung.us",
         "tmdb.org",
         "addthis.com",
@@ -68,6 +81,17 @@ class Settings(BaseSettings):
         "ddos-guard.net",
         "gmpg.org",
         "gearbest.com",
+        "toglooman.com",
+        "itskiddoan.club",
+        "enterpapp.xyz",
+        "bit.ly",
+        "dozubatan.com",
+        "pseepsie.com",
+        "hcaptcha.com",
+        "logsss.com",
+        "adskeeper.co.uk",
+        "cloudflareinsights.com",
+        "yahoo.com",
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
