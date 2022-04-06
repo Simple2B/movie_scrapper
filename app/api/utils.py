@@ -41,6 +41,7 @@ def url_belong_to_domain(host: str, ignored_domain: str) -> bool:
 
 
 def urls_cleanup(data: Urls) -> Urls:
+    data: Urls = Urls(target_ulr=data.target_ulr, urls=data.urls, error=data.error)
     logger.info("Cleanup detected urls from [{}].", data.target_ulr)
     ignored_domains = settings.IGNORED_DOMAINS + [
         ".".join(
@@ -71,7 +72,7 @@ def urls_cleanup(data: Urls) -> Urls:
             cleaned_urls += [url]
 
     logger.info("[{}] url(s) deleted.", count_deleted)
-    return Urls(target_ulr=data.target_ulr, urls=cleaned_urls)
+    return Urls(target_ulr=data.target_ulr, urls=cleaned_urls, error=data.error)
 
 
 def convert_to_xls(file_name: str, content: Urls):

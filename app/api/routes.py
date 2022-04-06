@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, status
+from fastapi.responses import JSONResponse
 from base64 import binascii
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from pydantic.error_wrappers import ValidationError
@@ -13,7 +14,7 @@ scrapper_router = APIRouter(prefix="/api")
 
 
 @scrapper_router.post("/generalist/{target_link_encoded}", response_model=Urls)
-def input_movies_url(
+async def input_movies_url(
     target_link_encoded: str,
 ) -> Urls:
     from app.api.scrapper import get_links
@@ -21,26 +22,31 @@ def input_movies_url(
     try:
         url = decode_link(target_link_encoded)
         logger.info("Incoming URL detected: [{}].", url)
+        data = Urls(target_ulr=url)
     except (binascii.Error, UnicodeDecodeError) as err:
+        data = Urls(error=str(err))
         logger.error("Failed to decode incoming data [{}].", target_link_encoded)
-        return Urls(error=str(err))
-
-    try:
-        Urls(target_ulr=url)
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST, content=data.dict()
+        )
     except ValidationError as err:
+        data = Urls(error=str(err))
         logger.error("Incoming URL [{}] is broken.", url)
-        return Urls(error=str(err))
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST, content=data.dict()
+        )
 
     try:
-        urls: list[str] = get_links(url)
-        dirty_urls_count: int = len(urls)
-        data: Urls = urls_cleanup(Urls(target_ulr=url, urls=urls))
+        data.urls = get_links(data.target_ulr)
+        dirty_urls_count: int = len(data.urls)
+        data = urls_cleanup(data)
     except (
         TimeoutException,
         WebDriverException,
     ) as e:
-        logger.error("Failed to parse page from url [{}].", url)
-        return Urls(target_ulr=url, error=e.msg)
+        data.error = e.msg
+        logger.error("Failed to parse page from url [{}].", data.target_ulr)
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=data.dict())
 
     if not data.urls:
         data.error = "[{}] href tags found, but did not pass moderation.".format(
