@@ -2,7 +2,6 @@ import os
 import base64
 import json
 from datetime import datetime
-import requests
 import pandas as pd
 from app.logging import logger
 from app.config import settings

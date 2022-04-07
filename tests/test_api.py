@@ -5,7 +5,6 @@ from typing import Generator
 from fastapi.testclient import TestClient
 from app.setup import create_app
 from app.api.utils import encode_link, convert_to_xls
-from app.api.schemas import Urls
 
 
 @pytest.fixture()
