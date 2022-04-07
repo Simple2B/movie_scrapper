@@ -7,6 +7,7 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
+    # FastApi init settings
     DEBUG: bool = os.getenv("DEBUG", "0") == "1"
     APP_NAME: str = "FastAPI_scrapper"
     APP_DESCRIPTION: str = ""
@@ -15,84 +16,32 @@ class Settings(BaseSettings):
     DOCS_URL: str = "/api/docs"
     SWAGGER_UI_OAUTH2_REDIRECT_URL: str = "/api/docs/oauth2-redirect"
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+
+    # Working directories
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     STORAGE_FOLDER: str = "data"
     DRIVERS_FOLDER: str = "drivers"
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "ERROR")
-    JSON_LOGS: bool = os.getenv("JSON_LOGS", "0") == "1"
-    OUTPUT_XLSX: str = os.path.join(
+
+    # Working files
+    REQUESTS_DATA_PATH: str = os.path.join(
         os.path.join(BASE_DIR, STORAGE_FOLDER), "video_urls.xlsx"
+    )
+    STATISTICS_DATA_PATH: str = os.path.join(
+        os.path.join(BASE_DIR, STORAGE_FOLDER), "bot_statictics.xlsx"
+    )
+    FILTER_CONFIGS_PATH: str = os.path.join(
+        os.path.join(BASE_DIR, STORAGE_FOLDER), "filter_configs.json"
+    )
+    TARGET_LINKS_PATH: str = os.path.join(
+        os.path.join(BASE_DIR, STORAGE_FOLDER), "target_links.txt"
     )
     CHROME_DRIVER_PATH: str = os.path.join(
         os.path.join(BASE_DIR, DRIVERS_FOLDER), "chromedriver"
     )
-    IGNORED_EXTENSIONS: list[str] = [
-        ".jpg",
-        ".jpeg",
-        ".ico",
-        ".png",
-        ".svg",
-        ".css",
-        ".js",
-        "/svg",
-        "/xlink",
-        ".config_resp",
-        ".gif",
-        ".woff",
-        ".eot",
-        ".ttf",
-    ]
-    IGNORED_DOMAINS: list[str] = [
-        "whatsapp.com",
-        "facebook.com",
-        "facebook.net",
-        "instagram.com",
-        "fb.me",
-        "youtube.com",
-        "google.com",
-        "twitter.com",
-        "t.me",
-        "statcounter.com",
-        "rtmark.net",
-        "bootstrapcdn.com",
-        "pinterest.com",
-        "cloudflare.com",
-        "googleapis.com",
-        "google-analytics.com",
-        "googletagmanager.com",
-        "googleadservices.com",
-        "googleusercontent.com",
-        "telegram.me",
-        "tmdb.org",
-        "reddit.com",
-        "schema.org",
-        "gstatic.com",
-        "w3.org",
-        "w.org",
-        "littlecdn.com",
-        "stackpathcdn.com",
-        "gbtcdn.com",
-        "amung.us",
-        "tmdb.org",
-        "addthis.com",
-        "histats.com",
-        "data-vocabulary.org",
-        "fayanka.com",
-        "ddos-guard.net",
-        "gmpg.org",
-        "gearbest.com",
-        "toglooman.com",
-        "itskiddoan.club",
-        "enterpapp.xyz",
-        "bit.ly",
-        "dozubatan.com",
-        "pseepsie.com",
-        "hcaptcha.com",
-        "logsss.com",
-        "adskeeper.co.uk",
-        "cloudflareinsights.com",
-        "yahoo.com",
-    ]
+
+    # Logging settings
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "ERROR")
+    JSON_LOGS: bool = os.getenv("JSON_LOGS", "0") == "1"
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:

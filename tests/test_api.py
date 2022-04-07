@@ -4,9 +4,8 @@ import json
 from typing import Generator
 from fastapi.testclient import TestClient
 from app.setup import create_app
-from app.api.utils import encode_link
+from app.api.utils import encode_link, convert_to_xls
 from app.api.schemas import Urls
-from app.logging import logger
 
 
 @pytest.fixture()
@@ -52,45 +51,26 @@ def test_input_movies_url(client: TestClient, monkeypatch):
     assert len(json.loads(response.content)["urls"]) == 2
 
 
-def write_test_result(file_name: str, content: Urls):
-    import pandas as pd
-
-    xls_data = pd.DataFrame(
-        [
-            dict(
-                target_url=str(content.target_url),
-                num_urls=len(content.urls),
-                error=content.error,
-            )
-        ]
-    )
-    if os.path.exists(file_name):
-        logger.info("Excel file [{}] already exists", file_name)
-        file_xls_data = pd.DataFrame(pd.read_excel(file_name))
-        xls_data = pd.concat([file_xls_data, xls_data])
-    xls_data.to_excel(
-        file_name,
-        engine="openpyxl",
-        index=False,
-    )
-
-
 @pytest.mark.skipif(
     not os.environ.get("SCRAP_TEST", None), reason="SCRAP_TEST disabled"
 )
 def test_all_urls(client: TestClient):
     from app.config import settings
 
-    ALL_LINKS_FILE = "target_links.txt"
-    TEST_RESULT_FILE: str = os.path.join(
-        os.path.join(settings.BASE_DIR, settings.STORAGE_FOLDER), "test_results.xlsx"
-    )
-    with open(ALL_LINKS_FILE, "r") as file:
+    with open(settings.TARGET_LINKS_PATH, "r") as file:
         for line in file:
             if not line or line.startswith("#"):
                 continue
             encoded_url = encode_link(line.strip())
             response = client.post(f"/api/generalist/{encoded_url}")
             assert response
-            data = Urls.parse_obj(response.json())
-            write_test_result(file_name=TEST_RESULT_FILE, content=data)
+            json_response = json.loads(response.content)
+            data = dict(
+                target_url=json_response["target_url"],
+                urls_count=len(json_response["urls"]),
+                error=json_response["error"],
+            )
+            convert_to_xls(
+                file_path=settings.STATISTICS_DATA_PATH,
+                content=[data],
+            )

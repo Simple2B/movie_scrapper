@@ -53,7 +53,11 @@ async def input_movies_url(
             dirty_urls_count
         )
 
+    # Write all detected urls to file
     if settings.DEBUG and data.urls:
-        convert_to_xls(file_path=settings.OUTPUT_XLSX, content=data.dict())
+        convert_to_xls(
+            file_path=settings.REQUESTS_DATA_PATH,
+            content=data.dict(),
+        )
 
     return data
