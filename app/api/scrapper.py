@@ -1,4 +1,3 @@
-import os
 import re
 import random
 import time
@@ -6,7 +5,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from fake_useragent import UserAgent
 from app.config import settings
-from app.logging import logger
 from app.api.utils import timer
 
 

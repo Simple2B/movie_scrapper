@@ -46,7 +46,7 @@ def urls_cleanup(data: Urls) -> Urls:
     ignored_domains = settings.IGNORED_DOMAINS + [
         ".".join(
             data.target_url.host.split(".")[
-                -(len(data.target_url.tld.split(".")) + 1) :
+                -(len(data.target_url.tld.split(".")) + 1) :  # noqa E203
             ]
         )
     ]
