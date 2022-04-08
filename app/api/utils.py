@@ -9,11 +9,11 @@ from app.api.schemas import Urls
 
 
 def decode_link(encoded_link: str) -> str:
-    return base64.b64decode(encoded_link).decode("utf-8")
+    return base64.urlsafe_b64decode(encoded_link).decode("utf-8")
 
 
 def encode_link(url: str) -> str:
-    return base64.b64encode(url.encode()).decode("utf-8")
+    return base64.urlsafe_b64encode(url.encode()).decode("utf-8")
 
 
 def timer(name: str = "Function"):
@@ -41,28 +41,50 @@ def url_belong_to_domain(host: str, ignored_domain: str) -> bool:
     return host[len_sub_domain:] == ignored_domain
 
 
-def urls_cleanup(data: Urls) -> Urls:
-    data: Urls = Urls(target_url=data.target_url, urls=data.urls, error=data.error)
-    logger.info("Cleanup detected urls from [{}].", data.target_url)
-
+def get_ignored(data: Urls) -> dict:
     with open(settings.FILTER_CONFIGS_PATH) as file:
         configs: dict = json.load(file)
-
-    ignored_extensions: list[str] = configs["ignored_extensions"]
-    ignored_domains: list[str] = configs["ignored_domains"] + [
-        ".".join(
-            data.target_url.host.split(".")[
-                -(len(data.target_url.tld.split(".")) + 1) :  # noqa E203
-            ]
-        )
+    ignored_extensions: list[str] = configs["extensions"]
+    ignored_domains: list[str] = configs["domains"]
+    home_domain = ".".join(
+        data.target_url.host.split(".")[
+            -(len(data.target_url.tld.split(".")) + 1) :  # noqa E203
+        ]
+    )
+    domains = [
+        ".".join(url.host.split(".")[-(len(url.tld.split(".")) + 1) :])  # noqa E203
+        for url in data.urls
     ]
+    counter = {domain: domains.count(domain) for domain in domains}
+    for domain, count in counter.items():
+        if count >= 10 and domain not in ignored_domains:
+            ignored_domains += [domain]
+    if home_domain not in ignored_domains:
+        ignored_domains += [home_domain]
+    return {
+        "ignored_domains": ignored_domains,
+        "ignored_extensions": ignored_extensions,
+    }
+
+
+def urls_pre_cleanup(data: Urls) -> Urls:
+    data: Urls = Urls(target_url=data.target_url, urls=data.urls, error=data.error)
+    cleaned_urls: list[str] = []
+    for url in data.urls:
+        if all([url.scheme, url.host, url.tld, url.path]):
+            cleaned_urls += [url]
+    return Urls(target_url=data.target_url, urls=cleaned_urls, error=data.error)
+
+
+def urls_cleanup(data: Urls) -> Urls:
+    logger.info("Cleanup detected urls from [{}].", data.target_url)
+    data: Urls = urls_pre_cleanup(data)
+    ignored: dict = get_ignored(data)
     urls: list[str] = []
     cleaned_urls: list[str] = []
     count_deleted: int = 0
     for url in data.urls:
-        if not all([url.scheme, url.tld]):
-            continue
-        for domain in ignored_domains:
+        for domain in ignored["ignored_domains"]:
             if url_belong_to_domain(
                 host=url.host,
                 ignored_domain=domain,
@@ -72,7 +94,7 @@ def urls_cleanup(data: Urls) -> Urls:
         else:
             urls += [url]
     for url in urls:
-        for extension in ignored_extensions:
+        for extension in ignored["ignored_extensions"]:
             if url.endswith(extension):
                 count_deleted += 1
                 break

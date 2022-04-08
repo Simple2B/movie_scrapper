@@ -31,14 +31,17 @@ def get_page(url: str) -> str:
     # options.add_argument(f"--proxy-server={ip}")
     options.add_argument(f"user-agent={userAgent}")
 
-    with webdriver.Chrome(
+    driver = webdriver.Chrome(
         options=options, executable_path=settings.CHROME_DRIVER_PATH
-    ) as driver:
-        driver.delete_all_cookies()
-        driver.set_page_load_timeout(20)
+    )
+    driver.delete_all_cookies()
+    driver.set_page_load_timeout(20)
+    try:
         driver.get(url)
         random_sleep(6)
         return driver.execute_script("return document.documentElement.outerHTML;")
+    finally:
+        driver.quit()
 
 
 def parse_page_to_links(html: str) -> list[str]:

@@ -46,7 +46,9 @@ async def input_movies_url(
     ) as e:
         data.error = e.msg
         logger.error("Failed to parse page from url [{}].", data.target_url)
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=data.dict())
+        return JSONResponse(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT, content=data.dict()
+        )
 
     if not data.urls:
         data.error = "[{}] href tags found, but did not pass moderation.".format(

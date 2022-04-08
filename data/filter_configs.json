@@ -1,5 +1,5 @@
 {
-    "ignored_extensions": [
+    "extensions": [
         ".jpg",
         ".jpeg",
         ".ico",
@@ -15,7 +15,7 @@
         ".eot",
         ".ttf"
     ],
-    "ignored_domains": [
+    "domains": [
         "whatsapp.com",
         "facebook.com",
         "facebook.net",
@@ -66,6 +66,7 @@
         "yahoo.com",
         "imdb.com",
         "gravatar.com",
-        "yourcolor.net"
+        "yourcolor.net",
+        "upgulpinon.com"
     ]
 }

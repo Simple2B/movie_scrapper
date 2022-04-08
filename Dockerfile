@@ -33,12 +33,14 @@ RUN exec "$@"
 
 # download drivers
 RUN mkdir drivers/
-RUN wget https://chromedriver.storage.googleapis.com/100.0.4896.60/chromedriver_linux64.zip 
+RUN wget https://chromedriver.storage.googleapis.com/100.0.4896.60/chromedriver_linux64.zip
 RUN unzip chromedriver_linux64.zip
 RUN chmod +x chromedriver
 RUN mv chromedriver drivers/
 RUN rm -rf chromedriver_linux64.zip
 
 RUN mkdir app/
+RUN mkdir data/
 COPY app/ app/
+COPY data/ data/
 COPY start_server.sh .

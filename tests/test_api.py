@@ -62,7 +62,6 @@ def test_all_urls(client: TestClient):
                 continue
             encoded_url = encode_link(line.strip())
             response = client.post(f"/api/generalist/{encoded_url}")
-            assert response
             json_response = json.loads(response.content)
             data = dict(
                 target_url=json_response["target_url"],
