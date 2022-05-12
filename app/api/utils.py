@@ -99,7 +99,8 @@ def urls_cleanup(data: Urls) -> Urls:
                 count_deleted += 1
                 break
         else:
-            cleaned_urls += [url]
+            if url.path:
+                cleaned_urls += [url]
 
     logger.info("[{}] url(s) deleted.", count_deleted)
     return Urls(target_url=data.target_url, urls=cleaned_urls, error=data.error)
