@@ -73,4 +73,6 @@ class LenientList(List[ItemT]):
 class Urls(BaseModel):
     target_url: AnyHttpUrl = None
     urls: LenientList[AnyHttpUrl] = []
+    cyberlockers: LenientList[AnyHttpUrl] = []
+    unique_cyberlockers: LenientList[AnyHttpUrl] = []
     error: str = ""

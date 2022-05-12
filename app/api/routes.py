@@ -3,11 +3,11 @@ from fastapi.responses import JSONResponse
 from base64 import binascii
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from pydantic.error_wrappers import ValidationError
-from app.logging import logger
-from app.config import settings
-from app.api.schemas import Urls
+from logger import logger
+from config import settings
+from api.schemas import Urls
 
-from app.api.utils import decode_link, urls_cleanup, convert_to_xls
+from api.utils import decode_link, urls_cleanup, convert_to_xls
 
 
 scrapper_router = APIRouter(prefix="/api")
@@ -17,7 +17,7 @@ scrapper_router = APIRouter(prefix="/api")
 async def input_movies_url(
     target_link_encoded: str,
 ) -> Urls:
-    from app.api.scrapper import parse_page_to_links, get_page
+    from api.scrapper import parse_page_to_links, get_page
 
     try:
         url = decode_link(target_link_encoded)

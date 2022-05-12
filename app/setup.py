@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from app.config import settings
-from app.logging import setup_logging
-from app.api.routes import scrapper_router
+from config import settings
+from logger import setup_logging
+from api.routes import scrapper_router
 
 
 def create_app() -> FastAPI:

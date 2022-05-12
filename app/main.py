@@ -1,6 +1,6 @@
 #!.venv/bin/python
 import uvicorn
-from app.setup import create_app
+from setup import create_app
 
 app = create_app()
 

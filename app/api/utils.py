@@ -3,9 +3,9 @@ import base64
 import json
 from datetime import datetime
 import pandas as pd
-from app.logging import logger
-from app.config import settings
-from app.api.schemas import Urls
+from logger import logger
+from config import settings
+from api.schemas import Urls
 
 
 def decode_link(encoded_link: str) -> str:

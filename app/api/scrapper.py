@@ -4,8 +4,8 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from fake_useragent import UserAgent
-from app.config import settings
-from app.api.utils import timer
+from config import settings
+from api.utils import timer
 
 
 def random_sleep(min=1, max=10):

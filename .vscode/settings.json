@@ -6,6 +6,8 @@
     "aerich",
     "asyncio",
     "bcrypt",
+    "cyberlocker",
+    "cyberlockers",
     "finalizer",
     "noqa",
     "pydantic",
