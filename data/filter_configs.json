@@ -1,5 +1,5 @@
 {
-  "extensions": [
+  "extensions_end": [
     ".jpg",
     ".jpeg",
     ".ico",
@@ -15,6 +15,7 @@
     ".eot",
     ".ttf"
   ],
+  "extensions_in": [".css?", ".js?", ".xml?", ".php", "ads"],
   "domains": [
     "whatsapp.com",
     "facebook.com",
@@ -67,7 +68,9 @@
     "imdb.com",
     "gravatar.com",
     "yourcolor.net",
-    "upgulpinon.com"
+    "upgulpinon.com",
+    "myspace.com",
+    "flickr.com"
   ],
   "cyberlockers": [
     "youdbox.com",
@@ -148,6 +151,11 @@
     "gdriveplayer.live",
     "youdbox.com",
     "cmn.gdriveplayer.pro",
-    "primewire.link"
+    "primewire.link",
+    "mixdrop.co",
+    "rabbitstream.net",
+    "w-123movies.com",
+    "1movietv.com",
+    "moplay.org"
   ]
 }

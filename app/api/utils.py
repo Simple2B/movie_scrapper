@@ -1,10 +1,12 @@
-import os
 import base64
 import json
+import os
 from datetime import datetime
+
 import pandas as pd
-from logger import logger
 from config import settings
+from logger import logger
+
 from api.schemas import Urls
 
 
@@ -44,7 +46,8 @@ def url_belong_to_domain(host: str, ignored_domain: str) -> bool:
 def get_ignored(data: Urls) -> dict:
     with open(settings.FILTER_CONFIGS_PATH) as file:
         configs: dict = json.load(file)
-    ignored_extensions: list[str] = configs["extensions"]
+    ignored_extensions_end: list[str] = configs["extensions_end"]
+    ignored_extensions_in: list[str] = configs["extensions_in"]
     ignored_domains: list[str] = configs["domains"]
     home_domain = ".".join(
         data.target_url.host.split(".")[
@@ -57,13 +60,17 @@ def get_ignored(data: Urls) -> dict:
     ]
     counter = {domain: domains.count(domain) for domain in domains}
     for domain, count in counter.items():
+        print(domain)
+        print(count)
         if count >= 10 and domain not in ignored_domains:
             ignored_domains += [domain]
     if home_domain not in ignored_domains:
+        print(home_domain)
         ignored_domains += [home_domain]
     return {
         "ignored_domains": ignored_domains,
-        "ignored_extensions": ignored_extensions,
+        "ignored_extensions_end": ignored_extensions_end,
+        "ignored_extensions_in": ignored_extensions_in,
     }
 
 
@@ -94,15 +101,32 @@ def urls_cleanup(data: Urls) -> Urls:
         else:
             urls += [url]
     for url in urls:
-        for extension in ignored["ignored_extensions"]:
+        for extension in ignored["ignored_extensions_end"]:
             if url.endswith(extension):
                 count_deleted += 1
                 break
         else:
-            cleaned_urls += [url]
+            if url.path:
+                cleaned_urls += [url]
+
+    cleaned_urls_2: list[str] = []
+    for url in cleaned_urls:
+        for extension in ignored["ignored_extensions_in"]:
+            if extension in url:
+                count_deleted += 1
+                break
+        else:
+            cleaned_urls_2 += [url]
+
+    # Expand filtering for exclude links like this:
+    # https://s1.bunnycdn.ru/assets/template_4/style_2/min/all.css?62049783 - ".css?"
+    # https://static.zdassets.com/ekr/snippet.js?key=77196c29-9d2b-4414-bc79-7543a13d07e3 - ".js?"
+    # https://moviesprofit.com/watch.xml?key=229d303cdaecbc26749f8031500eb1c3 - ".xml?"
+    # https://googleads.g.doubleclick.net/pagead/html/r20220509/r20190131/zrt_lookup.html - "ads"
+    # http://players.guamwnvgashbkashawhgkhahshmashcas.pw/stream.php - ".php"
 
     logger.info("[{}] url(s) deleted.", count_deleted)
-    return Urls(target_url=data.target_url, urls=cleaned_urls, error=data.error)
+    return Urls(target_url=data.target_url, urls=cleaned_urls_2, error=data.error)
 
 
 def convert_to_xls(file_path: str, content: dict):

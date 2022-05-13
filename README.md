@@ -14,7 +14,7 @@
 
 # Docker. Scrapping a file with urls. You need to specify input_filepath and you can specify urls_output_filepath, cyberlockers_output_filepath, unique_cyberlockers_output_filepath. If output_filepath for some file is not provided, then the file will be saved to input_filepath direccory.
 
-# docker-compose exec app bash -c "input_filepath="data/target_links.txt" urls_output_filepath="data/urls.csv" python app/client.py scrap_file"
+`docker-compose exec app bash -c "input_filepath="data/target_links.txt" urls_output_filepath="data/urls.csv" python app/client.py scrap_file"`
 
 # Copying files from inside docker container to local system.
 
