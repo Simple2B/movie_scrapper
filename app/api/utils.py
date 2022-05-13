@@ -118,13 +118,6 @@ def urls_cleanup(data: Urls) -> Urls:
         else:
             cleaned_urls_2 += [url]
 
-    # Expand filtering for exclude links like this:
-    # https://s1.bunnycdn.ru/assets/template_4/style_2/min/all.css?62049783 - ".css?"
-    # https://static.zdassets.com/ekr/snippet.js?key=77196c29-9d2b-4414-bc79-7543a13d07e3 - ".js?"
-    # https://moviesprofit.com/watch.xml?key=229d303cdaecbc26749f8031500eb1c3 - ".xml?"
-    # https://googleads.g.doubleclick.net/pagead/html/r20220509/r20190131/zrt_lookup.html - "ads"
-    # http://players.guamwnvgashbkashawhgkhahshmashcas.pw/stream.php - ".php"
-
     logger.info("[{}] url(s) deleted.", count_deleted)
     return Urls(target_url=data.target_url, urls=cleaned_urls_2, error=data.error)
 
