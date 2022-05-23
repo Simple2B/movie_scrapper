@@ -17,7 +17,8 @@ scrapper_router = APIRouter(prefix="/api")
 async def input_movies_url(
     target_link_encoded: str,
 ) -> Urls:
-    from app.api.scrapper import parse_page_to_links, get_page
+    from app.api.scrapper import get_page
+    from app.api.utils import parse_page_to_links
 
     try:
         url = decode_link(target_link_encoded)

@@ -1,6 +1,9 @@
 import os
 import base64
 import json
+import time
+import random
+import re
 from datetime import datetime
 import pandas as pd
 from app.logging import logger
@@ -14,6 +17,16 @@ def decode_link(encoded_link: str) -> str:
 
 def encode_link(url: str) -> str:
     return base64.urlsafe_b64encode(url.encode()).decode("utf-8")
+
+
+def random_sleep(min=1, max=10):
+    time.sleep(random.randrange(min, max, 1))
+
+
+def parse_page_to_links(html: str) -> list[str]:
+    """Returns list of links from html file"""
+    links = re.findall('"((http|ftp)s?://.*?)"', html)
+    return [link[0] for link in links]
 
 
 def timer(name: str = "Function"):
