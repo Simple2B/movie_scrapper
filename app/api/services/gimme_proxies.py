@@ -1,7 +1,7 @@
 import requests, json
 
 
-class Proxy3:
+class GimmeProxies:
     def __init__(self):
         pass
 

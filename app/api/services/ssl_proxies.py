@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from app.logging import logger
 
 
-class Proxy1:
+class SSLProxies:
     def __init__(self):
         pass
 

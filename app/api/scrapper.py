@@ -2,9 +2,17 @@ import re, random, time, requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from app.api.services import gimme_proxies, github_proxies, ssl_proxies
 from app.config import settings
 from app.api.utils import timer, random_sleep
-from .services import Proxy1, Proxy2, Proxy3, MacAddress, UserAgents, Geolocation
+from .services import (
+    SSLProxies,
+    GitHubProxies,
+    GimmeProxies,
+    MacAddress,
+    UserAgents,
+    Geolocation,
+)
 
 
 @timer(name="Scrapping")
@@ -17,13 +25,13 @@ def get_page(url: str) -> str:
     user_agent = useragents.random_user_agent()
 
     # Proxy
-    proxy1 = Proxy1()
-    proxy2 = Proxy2()
-    proxy3 = Proxy3()
+    ssl_proxies = SSLProxies()
+    github_proxies = GitHubProxies()
+    gimme_proxies = GimmeProxies()
     proxy_choices = {
-        "SSL Proxies": proxy1.proxy(),
-        "GitHub elite proxies": proxy2.proxy(),
-        "GimmeProxies": proxy3.proxy(),
+        "SSL Proxies": ssl_proxies.proxy(),
+        "GitHub elite proxies": github_proxies.proxy(),
+        "GimmeProxies": gimme_proxies.proxy(),
     }
 
     # Confirm proxy's validity
@@ -74,6 +82,7 @@ def get_page(url: str) -> str:
 
     # Set DesiredCapabilities
     capabilities = DesiredCapabilities.CHROME.copy()
+    capabilities["acceptInsecureCerts"] = True
     capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
     capabilities["proxy"] = {
         "httpProxy": PROXY,

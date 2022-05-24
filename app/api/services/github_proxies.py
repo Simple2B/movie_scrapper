@@ -1,7 +1,7 @@
 import requests, random
 
 
-class Proxy2:
+class GitHubProxies:
     def __init__(self):
         pass
 

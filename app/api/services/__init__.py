@@ -2,7 +2,7 @@
 
 from .geolocation import Geolocation
 from .mac_address import MacAddress
-from .proxy1 import Proxy1
-from .proxy2 import Proxy2
-from .proxy3 import Proxy3
+from .ssl_proxies import SSLProxies
+from .github_proxies import GitHubProxies
+from .gimme_proxies import GimmeProxies
 from .user_agents import UserAgents
