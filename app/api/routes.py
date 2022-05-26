@@ -4,10 +4,9 @@ from base64 import binascii
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from pydantic.error_wrappers import ValidationError
 from app.logging import logger
-from app.config import settings
 from app.api.schemas import Urls
 
-from app.api.utils import decode_link, urls_cleanup, convert_to_xls
+from app.api.utils import decode_link, sort_urls
 
 
 scrapper_router = APIRouter(prefix="/api")
@@ -17,8 +16,7 @@ scrapper_router = APIRouter(prefix="/api")
 async def input_movies_url(
     target_link_encoded: str,
 ) -> Urls:
-    from app.api.scrapper import get_page
-    from app.api.utils import parse_page_to_links
+    from app.api.scrapper import get_links
 
     try:
         url = decode_link(target_link_encoded)
@@ -38,10 +36,10 @@ async def input_movies_url(
         )
 
     try:
-        data.urls = parse_page_to_links(get_page(data.target_url))
-        dirty_urls_count: int = len(data.urls)
-        data = urls_cleanup(data)
+        data.urls = get_links(data.target_url)
+        data = sort_urls(data)
     except (
+        ConnectionError,
         TimeoutException,
         WebDriverException,
     ) as e:
@@ -50,17 +48,4 @@ async def input_movies_url(
         return JSONResponse(
             status_code=status.HTTP_408_REQUEST_TIMEOUT, content=data.dict()
         )
-
-    if not data.urls:
-        data.error = "[{}] href tags found, but did not pass moderation.".format(
-            dirty_urls_count
-        )
-
-    # Write all detected urls to file
-    if settings.DEBUG and data.urls:
-        convert_to_xls(
-            file_path=settings.REQUESTS_DATA_PATH,
-            content=data.dict(),
-        )
-
-    return data
+    return JSONResponse(status_code=status.HTTP_200_OK, content=data.dict())

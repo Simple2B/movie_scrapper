@@ -42,33 +42,9 @@ def test_input_movies_url(client: TestClient, monkeypatch):
 
     import app.api.scrapper as SC
 
-    monkeypatch.setattr(SC, "parse_page_to_links", get_test_urls)
+    monkeypatch.setattr(SC, "get_links", get_test_urls)
 
     encoded_url = encode_link(TEST_URL)
     response = client.post(f"/api/generalist/{encoded_url}")
     assert response
     assert len(json.loads(response.content)["urls"]) == 2
-
-
-@pytest.mark.skipif(
-    not os.environ.get("SCRAP_TEST", None), reason="SCRAP_TEST disabled"
-)
-def test_all_urls(client: TestClient):
-    from app.config import settings
-
-    with open(settings.TARGET_LINKS_PATH, "r") as file:
-        for line in file:
-            if not line or line.startswith("#"):
-                continue
-            encoded_url = encode_link(line.strip())
-            response = client.post(f"/api/generalist/{encoded_url}")
-            json_response = json.loads(response.content)
-            data = dict(
-                target_url=json_response["target_url"],
-                urls_count=len(json_response["urls"]),
-                error=json_response["error"],
-            )
-            convert_to_xls(
-                file_path=settings.STATISTICS_DATA_PATH,
-                content=[data],
-            )

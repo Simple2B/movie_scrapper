@@ -1,11 +1,9 @@
-import os
-import base64
-import json
-import time
-import random
-import re
+import os, base64, json, time, random, csv
 from datetime import datetime
-import pandas as pd
+from fastapi.testclient import TestClient
+
+from pydantic import AnyHttpUrl
+
 from app.logging import logger
 from app.config import settings
 from app.api.schemas import Urls
@@ -19,14 +17,8 @@ def encode_link(url: str) -> str:
     return base64.urlsafe_b64encode(url.encode()).decode("utf-8")
 
 
-def random_timeout(min=1, max=10):
+def random_timeout(min=1, max=60):
     time.sleep(random.randint(min, max))
-
-
-def parse_page_to_links(html: str) -> list[str]:
-    """Returns list of links from html file"""
-    links = re.findall('"((http|ftp)s?://.*?)"', html)
-    return [link[0] for link in links]
 
 
 def timer(name: str = "Function"):
@@ -47,18 +39,22 @@ def timer(name: str = "Function"):
     return decrement
 
 
-def url_belong_to_domain(host: str, ignored_domain: str) -> bool:
+def __url_belong_to_domain(host: str, ignored_domain: str) -> bool:
     if not ignored_domain or not host or ignored_domain not in host:
         return False
     len_sub_domain = len(host) - len(ignored_domain)
     return host[len_sub_domain:] == ignored_domain
 
 
-def get_ignored(data: Urls) -> dict:
-    with open(settings.FILTER_CONFIGS_PATH) as file:
+def __get_configs(path: str = settings.FILTER_CONFIGS_PATH) -> dict:
+    with open(path) as file:
         configs: dict = json.load(file)
-    ignored_extensions: list[str] = configs["extensions"]
-    ignored_domains: list[str] = configs["domains"]
+    return configs
+
+
+def __updated_configs(data: Urls) -> dict:
+    configs = __get_configs()
+    ignored_domains = configs.get("domains")
     home_domain = ".".join(
         data.target_url.host.split(".")[
             -(len(data.target_url.tld.split(".")) + 1) :  # noqa E203
@@ -75,59 +71,181 @@ def get_ignored(data: Urls) -> dict:
     if home_domain not in ignored_domains:
         ignored_domains += [home_domain]
     return {
-        "ignored_domains": ignored_domains,
-        "ignored_extensions": ignored_extensions,
+        "extensions_end": configs.get("extensions_end"),
+        "extensions_in": configs.get("extensions_in"),
+        "domains": ignored_domains,
+        "cyberlockers": configs.get("cyberlockers"),
     }
 
 
-def urls_pre_cleanup(data: Urls) -> Urls:
-    data: Urls = Urls(target_url=data.target_url, urls=data.urls, error=data.error)
-    cleaned_urls: list[str] = []
+def sort_urls(data: Urls) -> Urls:
+    cleaned_urls: list[AnyHttpUrl] = __urls_cleanup(data)
+    cyberlockers: list[AnyHttpUrl] = __find_cyberlockers(data)
+    return Urls(
+        target_url=data.target_url,
+        urls=cleaned_urls,
+        cyberlockers=cyberlockers,
+        error=data.error,
+    )
+
+
+def __urls_pre_cleanup(data: Urls) -> list:
+    data: Urls = Urls(
+        target_url=data.target_url,
+        urls=data.urls,
+        cyberlockers=data.cyberlockers,
+        error=data.error,
+    )
+    urls: list[AnyHttpUrl] = []
     for url in data.urls:
         if url.scheme and url.host and url.tld and url.path:
-            cleaned_urls += [url]
-    return Urls(target_url=data.target_url, urls=cleaned_urls, error=data.error)
+            urls += [url]
+    return urls
 
 
-def urls_cleanup(data: Urls) -> Urls:
-    logger.info("Cleanup detected urls from [{}].", data.target_url)
-    data: Urls = urls_pre_cleanup(data)
-    ignored: dict = get_ignored(data)
-    urls: list[str] = []
-    cleaned_urls: list[str] = []
-    count_deleted: int = 0
-    for url in data.urls:
-        for domain in ignored["ignored_domains"]:
-            if url_belong_to_domain(
+def __urls_cleanup(data: Urls) -> list[AnyHttpUrl]:
+    urls: list[AnyHttpUrl] = __urls_pre_cleanup(data)
+    configs: dict = __updated_configs(data)
+
+    cleaned_urls: list[AnyHttpUrl] = []
+    for url in urls:
+        for domain in configs.get("domains"):
+            if __url_belong_to_domain(
                 host=url.host,
                 ignored_domain=domain,
             ):
-                count_deleted += 1
                 break
-        else:
-            urls += [url]
-    for url in urls:
-        for extension in ignored["ignored_extensions"]:
+        for extension in configs.get("extensions_end"):
             if url.endswith(extension):
-                count_deleted += 1
+                break
+        for extension in configs.get("extensions_in"):
+            if extension in url:
                 break
         else:
-            if url.path:
-                cleaned_urls += [url]
-
-    logger.info("[{}] url(s) deleted.", count_deleted)
-    return Urls(target_url=data.target_url, urls=cleaned_urls, error=data.error)
+            cleaned_urls += [url]
+    return cleaned_urls
 
 
-def convert_to_xls(file_path: str, content: dict):
-    xls_data: pd.DataFrame = pd.DataFrame(content)
-    if os.path.exists(file_path):
-        logger.info("Excel file [{}] already exists.", file_path)
-        file_xls_data = pd.DataFrame(pd.read_excel(file_path))
-        xls_data = pd.concat([file_xls_data, xls_data])
-    xls_data.to_excel(
-        file_path,
-        engine="openpyxl",
-        index=False,
-    )
-    logger.info("File has been written to [{}].", file_path)
+def __find_cyberlockers(data: Urls) -> list[AnyHttpUrl]:
+    urls: list[AnyHttpUrl] = __urls_pre_cleanup(data)
+    configs: dict = __updated_configs()
+
+    found_cyberlockers: list = []
+    for url in urls:
+        for cyberlocker in configs.get("cyberlockers"):
+            if cyberlocker in url:
+                found_cyberlockers += [url]
+    return found_cyberlockers
+
+
+def get_json_response(client: TestClient, target_link_encoded: str):
+    response = client.post(f"api/generalist/{target_link_encoded}")
+    return json.loads(response.content)
+
+
+def make_output_filepath(
+    prefix: str,
+    filepath: str,
+) -> str:
+    splitted_filepath = filepath.split("/")
+    splitted_filepath[-1] = prefix + ".csv"
+    result_filepath = "/".join(str(item) for item in splitted_filepath)
+    return result_filepath
+
+
+def get_target_urls_from_file(input_filepath: str) -> list:
+    with open(input_filepath, "r") as input_file:
+        urls_to_be_scrapped = [line.strip() for line in input_file]
+    return urls_to_be_scrapped
+
+
+def write_data_to_csv_file(data: Urls, filepath: str, url_type: str) -> None:
+
+    if url_type == "links":
+        if not os.path.exists(filepath):
+            with open(filepath, "a+") as result_table:
+                writer = csv.writer(result_table)
+                writer.writerow(["Target URL", "URLs Count", "Error", "URL"])
+        else:
+            with open(filepath, "a+") as result_table:
+                writer = csv.writer(result_table)
+                first_url = True
+                for url in data.urls:
+                    if first_url:
+                        writer.writerow(
+                            [data.target_url, len(data.urls), data.error, url]
+                        )
+                        first_url = False
+                    else:
+                        writer.writerow(["", "", "", url])
+
+    elif url_type == "cyberlockers":
+        if not os.path.exists(filepath):
+            with open(filepath, "a+") as result_table:
+                writer = csv.writer(result_table)
+                writer.writerow(["Target URL", "Cyberlockers Count", "Error", "URL"])
+        else:
+            with open(filepath, "a+") as result_table:
+                writer = csv.writer(result_table)
+                first_url = True
+                for cyberlocker in data.cyberlockers:
+                    if first_url:
+                        writer.writerow(
+                            [
+                                data.target_url,
+                                len(data.cyberlockers),
+                                data.error,
+                                cyberlocker,
+                            ]
+                        )
+                        first_url = False
+                    else:
+                        writer.writerow(["", "", "", cyberlocker])
+
+
+def write_unique_cyberlockers_to_csv_file(data: Urls, filepath: str) -> None:
+    with open(filepath, "a+") as result_table:
+        writer = csv.writer(result_table)
+        writer.writerow(["URL", "Count:", len(data.cyberlockers)])
+        for cyberlocker in data.cyberlockers:
+            writer.writerow([cyberlocker])
+
+
+def find_unique_cyberlockers_from_a_file(filepath: str) -> list:
+    cyberlockers = []
+
+    with open(filepath, "r") as file:
+        lines = file.readlines()
+        first_line = True
+        for line in lines:
+            if not first_line:
+                cyberlockers.append(line.strip().split(",")[3])
+            first_line = False
+    return set(cyberlockers)
+
+
+def print_data(data: Urls) -> None:
+    print("Target URL: " + data.target_url)
+    print(f"All urls (Total Number: {len(data.urls)}):")
+
+    url_number = 1
+    for url in data.urls:
+        print(f"{url_number}. {url}")
+        url_number += 1
+    print("")
+
+    print(f"All cyberlockers (Total Number: {len(data.cyberlockers)}):")
+    url_number = 1
+    for cyberlocker in data.cyberlockers:
+        print(f"{url_number}. {cyberlocker}")
+        url_number += 1
+    print("")
+
+
+def print_unique_cyberlockers(unique_cyberlockers: list) -> None:
+    print(f"Unique cyberlockers (Total Number: {len(unique_cyberlockers)}):")
+    url_number = 1
+    for cyberlocker in unique_cyberlockers:
+        print(f"{url_number}. {cyberlocker}")
+        url_number += 1
+    print("")

@@ -5,13 +5,12 @@ from app.logging import logger
 
 class Geolocation:
     def __init__(self):
-        pass
+        self.target_urls = "https://raw.githubusercontent.com/google/dspl/master/samples/google/canonical/countries.csv"
 
     def change_geolocation(self, driver, country):
-        country = country[0:2]
 
-        target_url = "https://raw.githubusercontent.com/google/dspl/master/samples/google/canonical/countries.csv"
-        response = requests.get(target_url)
+        country = country[0:2]
+        response = requests.get(self.target_url)
         data = response.text
 
         prefix = {}
