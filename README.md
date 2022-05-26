@@ -13,6 +13,11 @@
 - beautifulsoup4
 - webdriver-manager
 ## Setup
+- Install [poetry](https://python-poetry.org/docs/)
+- Install project dependencies
+```
+$ poetry install
+```
 ### Start application and [Enjoy](http://127.0.0.1:8090)
 - Go to working directory
 ```
