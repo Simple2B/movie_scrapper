@@ -6,6 +6,6 @@ from .utils import (
     timer,
     urls_cleanup,
     convert_to_xls,
-    random_sleep,
+    random_timeout,
     parse_page_to_links,
 )

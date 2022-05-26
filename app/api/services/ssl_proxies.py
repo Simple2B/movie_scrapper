@@ -17,34 +17,21 @@ class SSLProxies:
             "Referer": "http://www.wikipedia.org/",
             "Connection": "keep-alive",
         }
-        # Define the IP and Port list
-        random_ip, random_port, random_country = [], [], []
+        proxies = []
         try:
-            url = "https://www.sslproxies.org/"
-            r = requests.get(url=url, headers=headers)
+            target_url = "https://www.sslproxies.org/"
+            response = requests.get(url=target_url, headers=headers)
         except:
             logger.error("SSL Proxies is either down or there is no Internet")
             quit()
-        soup = BeautifulSoup(r.text, "html.parser")
+        soup = BeautifulSoup(response.text, "html.parser")
+        table = soup.findAll("table")[0]
+        rows = table.findAll("tr")
 
-        # Get the Random IP Address
-        for x in soup.findAll("td")[::8]:
-            random_ip.append(x.get_text())
+        for row in rows[1:]:
+            tds = row.findAll("td")
+            PROXY = "{}:{}".format(tds[0].get_text(), tds[1].get_text())
+            country = tds[2].get_text()
+            proxies.append([PROXY, country])
 
-        # Get Their Port
-        for y in soup.findAll("td")[1::8]:
-            random_port.append(y.get_text())
-        z = list(zip(random_ip, random_port))
-
-        # Get their country
-        for k in soup.findAll("td")[2::8]:
-            random_country.append(k.get_text())
-
-        # This will Fetch Random IP Address and corresponding PORT Number
-        number = random.randint(0, len(z) - 50)
-        ip_random = z[number]
-        country_random = random_country[number]
-
-        # Create a Proxy
-        proxy = "{}:{}".format(ip_random[0], ip_random[1])
-        return [proxy, country_random]
+        return proxies

@@ -19,8 +19,8 @@ def encode_link(url: str) -> str:
     return base64.urlsafe_b64encode(url.encode()).decode("utf-8")
 
 
-def random_sleep(min=1, max=10):
-    time.sleep(random.randrange(min, max, 1))
+def random_timeout(min=1, max=10):
+    time.sleep(random.randint(min, max))
 
 
 def parse_page_to_links(html: str) -> list[str]:
@@ -84,7 +84,7 @@ def urls_pre_cleanup(data: Urls) -> Urls:
     data: Urls = Urls(target_url=data.target_url, urls=data.urls, error=data.error)
     cleaned_urls: list[str] = []
     for url in data.urls:
-        if all([url.scheme, url.host, url.tld, url.path]):
+        if url.scheme and url.host and url.tld and url.path:
             cleaned_urls += [url]
     return Urls(target_url=data.target_url, urls=cleaned_urls, error=data.error)
 
