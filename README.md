@@ -13,15 +13,17 @@
 - beautifulsoup4
 - webdriver-manager
 ## Setup
-### Start application
+### Start application and [Enjoy](http://127.0.0.1:8090)
+- Go to working directory
 ```
 $ cd cyberlocker-api
 ```
+- Start application
 ```
 $ poetry run uvicorn app.main:app
 ```
-[Enjoy](http://127.0.0.1:8000)
-### Run docker container
+### Run docker container and [Enjoy](http://127.0.0.1:8000)
+- Go to working directory
 ```
 $ cd cyberlocker-api
 ```
@@ -29,15 +31,14 @@ $ cd cyberlocker-api
 ```
 $ docker-compose build
 ```
-- Up docker-container
+- Up docker container
 ```
 $ docker-compose up -d
 ```
-- Check if docker-container is up
+- Check if docker container is up
 ```
 $ docker-compose ps
 ```
-[Enjoy](http://127.0.0.1:8000)
 ## Additional functionality
 ### You can use inside client
 - Scrap from single link
