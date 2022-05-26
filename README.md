@@ -9,35 +9,42 @@
 - python-dotenv
 - Loguru
 - Requests
+- random-user-agent
+- beautifulsoup4
+- webdriver-manager
 ## Setup
-### Start docker container
+### Start application
 ```
 $ cd cyberlocker-api
 ```
 ```
+$ poetry run uvicorn app.main:app
+```
+[Enjoy](http://127.0.0.1:8000)
+### Run docker container
+```
+$ cd cyberlocker-api
+```
+- Build docker container
+```
+$ docker-compose build
+```
+- Up docker-container
+```
 $ docker-compose up -d
 ```
-### Check that container is running
+- Check if docker-container is up
 ```
 $ docker-compose ps
 ```
+[Enjoy](http://127.0.0.1:8000)
 ## Additional functionality
 ### You can use inside client
 - Scrap from single link
 ```
-$ docker-compose exec app bash -c "url='[website]' python app/client.py scrap_url
+$ url="host:/domain.tld/path" python app/client.py scrap_url
 ```
 - Scrap from links list in .txt format
 ```
-$ docker-compose exec app bash -c "input_filepath='[path-to-target-links-list.txt]' urls_output_filepath='[path-to-result-lists.txt]' python app/client.py scrap_file"
-```
-### Copy results to you system
-```
-$ sudo docker cp 61bfcf6f3fa6:/movie-scrapper/data/urls.csv /mnt/c/Coding/Projects/Simple2B/movie_scrapper/movie_scrapper/data/urls.csv
-```
-```
-$ sudo docker cp 61bfcf6f3fa6:/movie-scrapper/data/cyberlockers.csv /mnt/c/Coding/Projects/Simple2B/movie_scrapper/movie_scrapper/data/cyberlockers.csv
-```
-```
-$ sudo docker cp 61bfcf6f3fa6:/movie-scrapper/data/unique_cyberlockers.csv /mnt/c/Coding/Projects/Simple2B/movie_scrapper/movie_scrapper/data/unique_cyberlockers.csv
+$ input_filepath="temp/target_links.txt" python app/client.py scrap_file
 ```

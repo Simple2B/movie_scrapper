@@ -31,16 +31,7 @@ RUN Xvfb -ac :99 -screen 0 1280x1024x16 > /dev/null 2>&1 &
 RUN export DISPLAY=:99
 RUN exec "$@"
 
-# download drivers
-RUN mkdir drivers/
-RUN wget https://chromedriver.storage.googleapis.com/100.0.4896.60/chromedriver_linux64.zip
-RUN unzip chromedriver_linux64.zip
-RUN chmod +x chromedriver
-RUN mv chromedriver drivers/
-RUN rm -rf chromedriver_linux64.zip
-
 RUN mkdir app/
-RUN mkdir data/
 COPY app/ app/
-COPY data/ data/
+COPY filter_configs.json .
 COPY start_server.sh .

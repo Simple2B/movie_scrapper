@@ -19,22 +19,10 @@ class Settings(BaseSettings):
 
     # Working directories
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    STORAGE_DIR: str = "data"
     DRIVERS_DIR: str = r".drivers"
 
     # Working files
-    REQUESTS_DATA_PATH: str = os.path.join(
-        os.path.join(BASE_DIR, STORAGE_DIR), "video_urls.xlsx"
-    )
-    STATISTICS_DATA_PATH: str = os.path.join(
-        os.path.join(BASE_DIR, STORAGE_DIR), "bot_statictics.xlsx"
-    )
-    FILTER_CONFIGS_PATH: str = os.path.join(
-        os.path.join(BASE_DIR, STORAGE_DIR), "filter_configs.json"
-    )
-    TARGET_LINKS_PATH: str = os.path.join(
-        os.path.join(BASE_DIR, STORAGE_DIR), "target_links.txt"
-    )
+    FILTER_CONFIGS_PATH: str = os.path.join(BASE_DIR, "filter_configs.json")
 
     # Logging settings
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "ERROR")
