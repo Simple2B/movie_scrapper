@@ -33,5 +33,7 @@ RUN exec "$@"
 
 RUN mkdir app/
 COPY app/ app/
+COPY main.py .
+COPY client.py .
 COPY filter_configs.json .
 COPY start_server.sh .

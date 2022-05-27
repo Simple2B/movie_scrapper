@@ -205,7 +205,7 @@ def write_unique_cyberlockers_to_csv_file(data: Urls, filepath: str) -> None:
 
 def find_unique_cyberlockers_from_a_file(filepath: str) -> list:
     cyberlockers = []
-
+    unique_cyberlockers = []
     with open(filepath, "r") as file:
         lines = file.readlines()
         first_line = True
@@ -213,7 +213,10 @@ def find_unique_cyberlockers_from_a_file(filepath: str) -> list:
             if not first_line:
                 cyberlockers.append(line.strip().split(",")[3])
             first_line = False
-    return set(cyberlockers)
+    for cyberlocker in cyberlockers:
+        if cyberlocker not in unique_cyberlockers:
+            unique_cyberlockers.append(cyberlocker)
+    return unique_cyberlockers
 
 
 def print_data(data: Urls) -> None:

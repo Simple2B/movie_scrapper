@@ -3,7 +3,7 @@ import sys
 
 from fastapi.testclient import TestClient
 
-from api.schemas import Urls
+from app.api.schemas import Urls
 from app.api.utils import (
     encode_link,
     write_data_to_csv_file,
@@ -15,8 +15,9 @@ from app.api.utils import (
     print_data,
     print_unique_cyberlockers,
 )
-from main import app
+from app.setup import create_app
 
+app = create_app()
 client = TestClient(app)
 
 
@@ -56,9 +57,10 @@ def scrap_file():
         cyberlockers_output_filepath
     )
     print_unique_cyberlockers(unique_cyberlockers)
-    write_unique_cyberlockers_to_csv_file(
-        unique_cyberlockers, unique_cyberlockers_output_filepath
-    )
+    if unique_cyberlockers:
+        write_unique_cyberlockers_to_csv_file(
+            unique_cyberlockers, unique_cyberlockers_output_filepath
+        )
 
 
 if __name__ == "__main__":

@@ -48,9 +48,9 @@ $ docker-compose ps
 ### You can use inside client
 - Scrap from single link
 ```
-$ url="host:/domain.tld/path" python app/client.py scrap_url
+$ url="host:/domain.tld/path" python client.py scrap_url
 ```
 - Scrap from links list in .txt format
 ```
-$ input_filepath="temp/target_links.txt" python app/client.py scrap_file
+$ input_filepath="temp/target_links.txt" python client.py scrap_file
 ```
