@@ -18,7 +18,7 @@
 ```
 $ poetry install
 ```
-### Start application and [Enjoy](http://127.0.0.1:8090)
+### Start application and [Enjoy](http://127.0.0.1:8090/api/docs)
 - Go to working directory
 ```
 $ cd cyberlocker-api
@@ -27,7 +27,7 @@ $ cd cyberlocker-api
 ```
 $ poetry run uvicorn app.main:app
 ```
-### Run docker container and [Enjoy](http://127.0.0.1:8000)
+### Run docker container and [Enjoy](http://127.0.0.1:8000/api/docs)
 - Go to working directory
 ```
 $ cd cyberlocker-api

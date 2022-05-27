@@ -37,7 +37,7 @@ async def input_movies_url(
 
     try:
         data.urls = get_links(data.target_url)
-        data = sort_urls(data)
+        data: Urls = sort_urls(data)
     except (
         ConnectionError,
         TimeoutException,

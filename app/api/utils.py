@@ -1,10 +1,8 @@
 import os, base64, json, time, random, csv
-from datetime import datetime
 from fastapi.testclient import TestClient
 
 from pydantic import AnyHttpUrl
 
-from app.logging import logger
 from app.config import settings
 from app.api.schemas import Urls
 
@@ -19,24 +17,6 @@ def encode_link(url: str) -> str:
 
 def random_timeout(min=1, max=60):
     time.sleep(random.randint(min, max))
-
-
-def timer(name: str = "Function"):
-    def decrement(function):
-        def wrapper(*args, **kwargs):
-            start = datetime.now()
-            result = function(*args, **kwargs)
-            end = datetime.now()
-            logger.info(
-                "{name} execution time: {time.seconds}s, {time.microseconds}ms.".format(
-                    time=end - start, name=name
-                )
-            )
-            return result
-
-        return wrapper
-
-    return decrement
 
 
 def __url_belong_to_domain(host: str, ignored_domain: str) -> bool:
@@ -89,7 +69,7 @@ def sort_urls(data: Urls) -> Urls:
     )
 
 
-def __urls_pre_cleanup(data: Urls) -> list:
+def __urls_pre_cleanup(data: Urls) -> Urls:
     data: Urls = Urls(
         target_url=data.target_url,
         urls=data.urls,
@@ -100,38 +80,50 @@ def __urls_pre_cleanup(data: Urls) -> list:
     for url in data.urls:
         if url.scheme and url.host and url.tld and url.path:
             urls += [url]
-    return urls
+    return Urls(
+        target_url=data.target_url,
+        urls=urls,
+        cyberlockers=data.cyberlockers,
+        error=data.error,
+    )
 
 
 def __urls_cleanup(data: Urls) -> list[AnyHttpUrl]:
-    urls: list[AnyHttpUrl] = __urls_pre_cleanup(data)
+    data: Urls = __urls_pre_cleanup(data)
     configs: dict = __updated_configs(data)
-
-    cleaned_urls: list[AnyHttpUrl] = []
-    for url in urls:
+    stage_1_cleaned_urls: list[AnyHttpUrl] = []
+    stage_2_cleaned_urls: list[AnyHttpUrl] = []
+    stage_3_cleaned_urls: list[AnyHttpUrl] = []
+    for url in data.urls:
         for domain in configs.get("domains"):
             if __url_belong_to_domain(
                 host=url.host,
                 ignored_domain=domain,
             ):
                 break
+        else:
+            stage_1_cleaned_urls += [url]
+    for url in stage_1_cleaned_urls:
         for extension in configs.get("extensions_end"):
             if url.endswith(extension):
                 break
+        else:
+            stage_2_cleaned_urls += [url]
+    for url in stage_2_cleaned_urls:
         for extension in configs.get("extensions_in"):
             if extension in url:
                 break
         else:
-            cleaned_urls += [url]
-    return cleaned_urls
+            stage_3_cleaned_urls += [url]
+    return stage_3_cleaned_urls
 
 
 def __find_cyberlockers(data: Urls) -> list[AnyHttpUrl]:
-    urls: list[AnyHttpUrl] = __urls_pre_cleanup(data)
-    configs: dict = __updated_configs()
+    data: Urls = __urls_pre_cleanup(data)
+    configs: dict = __updated_configs(data)
 
     found_cyberlockers: list = []
-    for url in urls:
+    for url in data.urls:
         for cyberlocker in configs.get("cyberlockers"):
             if cyberlocker in url:
                 found_cyberlockers += [url]

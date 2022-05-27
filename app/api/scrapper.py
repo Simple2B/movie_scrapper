@@ -12,7 +12,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from app.logging import logger
 from app.config import settings
-from app.api.utils import timer, random_timeout
+from app.api.utils import random_timeout
 from app.api.services import (
     GimmeProxies,
     UserAgents,
@@ -20,7 +20,6 @@ from app.api.services import (
 )
 
 
-@timer(name="WebDriver initializing")
 def init_driver() -> WebDriver:
     # Init User Agent
     ua: UserAgents = UserAgents()
@@ -77,7 +76,6 @@ def init_driver() -> WebDriver:
     return driver
 
 
-@timer(name="Scrapping")
 def get_links(url: str) -> str:
     """Return raw html page"""
     driver = init_driver()
