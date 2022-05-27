@@ -4,10 +4,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
 from app.logging import logger
@@ -15,6 +11,7 @@ from app.config import settings
 from app.api.utils import random_timeout
 from app.api.services import (
     GimmeProxies,
+    SSLProxies,
     UserAgents,
     Geolocation,
 )
@@ -28,7 +25,9 @@ def init_driver() -> WebDriver:
     # # Proxy
     # proxy = GimmeProxies()
     # PROXY, country = proxy.check_proxy()
-    # logger.info("[+] Proxy of choice: " + str(PROXY))
+    proxy = SSLProxies()
+    PROXY, country = proxy.check_proxy()
+    logger.info("[+] Proxy of choice: " + str(PROXY))
 
     # Set WebDriver Options
     options = Options()
@@ -47,22 +46,22 @@ def init_driver() -> WebDriver:
     options.add_argument("user-agent={}".format(user_agent))
 
     # Set DesiredCapabilities
-    # capabilities = DesiredCapabilities.CHROME.copy()
+    capabilities = DesiredCapabilities.CHROME.copy()
 
-    # capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
-    # capabilities["proxy"] = {
-    #     "httpProxy": PROXY,
-    #     "ftpProxy": PROXY,
-    #     "sslProxy": PROXY,
-    #     "noProxy": None,
-    #     "proxyType": "MANUAL",
-    #     "class": "org.openqa.selenium.Proxy",
-    #     "autodetect": False,
-    # }
+    capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
+    capabilities["proxy"] = {
+        "httpProxy": PROXY,
+        "ftpProxy": PROXY,
+        "sslProxy": PROXY,
+        "noProxy": None,
+        "proxyType": "MANUAL",
+        "class": "org.openqa.selenium.Proxy",
+        "autodetect": False,
+    }
     driver = WebDriver(
         service=Service(ChromeDriverManager(path=settings.DRIVERS_DIR).install()),
         options=options,
-        # desired_capabilities=capabilities,
+        desired_capabilities=capabilities,
     )
 
     # Confirm user agent
@@ -70,8 +69,8 @@ def init_driver() -> WebDriver:
     logger.info("[+] User Agent in use: {}".format(agent))
 
     # Confirm GeoLocation
-    # location_change = Geolocation()
-    # location_change.change_geolocation(driver, country)
+    location_change = Geolocation()
+    location_change.change_geolocation(driver, country)
 
     return driver
 
