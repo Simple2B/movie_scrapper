@@ -10,7 +10,6 @@ from app.logging import logger
 from app.config import settings
 from app.api.utils import random_timeout
 from app.api.services import (
-    GimmeProxies,
     SSLProxies,
     UserAgents,
     Geolocation,
@@ -23,8 +22,6 @@ def init_driver() -> WebDriver:
     user_agent = ua.random_user_agent()
 
     # # Proxy
-    # proxy = GimmeProxies()
-    # PROXY, country = proxy.check_proxy()
     proxy = SSLProxies()
     PROXY, country = proxy.check_proxy()
     logger.info("[+] Proxy of choice: " + str(PROXY))
