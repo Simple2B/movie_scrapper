@@ -46,7 +46,7 @@ $ docker-compose ps
 ```
 ### Re-deploy on the server
 ```
-docker-compose down; git pull; docker-compose up --build -d
+$ docker-compose down; git pull; docker-compose up --build -d
 ```
 ## Additional functionality
 ### You can use inside client
