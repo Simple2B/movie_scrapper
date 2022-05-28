@@ -14,6 +14,7 @@ from app.api.utils import (
     find_unique_cyberlockers_from_a_file,
     print_data,
     print_unique_cyberlockers,
+    write_source_links_to_file,
 )
 from app.setup import create_app
 
@@ -28,6 +29,7 @@ def scrap(url: str) -> Urls:
         target_url=response.get("target_url"),
         urls=response.get("urls"),
         cyberlockers=response.get("cyberlockers"),
+        additional_urls=response.get("additional_urls"),
         error=response.get("error"),
     )
 
@@ -40,10 +42,15 @@ def scrap_url():
 
 def scrap_file():
     input_filepath = os.environ.get("input_filepath", None)
-    urls_output_filepath = make_output_filepath("urls", input_filepath)
-    cyberlockers_output_filepath = make_output_filepath("cyberlockers", input_filepath)
+    urls_output_filepath = make_output_filepath("urls.csv", input_filepath)
+    target_urls_output_filepath = make_output_filepath(
+        "target_links.txt", input_filepath
+    )
+    cyberlockers_output_filepath = make_output_filepath(
+        "cyberlockers.csv", input_filepath
+    )
     unique_cyberlockers_output_filepath = make_output_filepath(
-        "unique_cyberlockers", input_filepath
+        "unique_cyberlockers.csv", input_filepath
     )
     urls = get_target_urls_from_file(input_filepath)
 
@@ -52,6 +59,7 @@ def scrap_file():
         print_data(data)
         write_data_to_csv_file(data, urls_output_filepath, "links")
         write_data_to_csv_file(data, cyberlockers_output_filepath, "cyberlockers")
+        write_source_links_to_file(data, target_urls_output_filepath)
 
     unique_cyberlockers = find_unique_cyberlockers_from_a_file(
         cyberlockers_output_filepath

@@ -74,4 +74,5 @@ class Urls(BaseModel):
     target_url: AnyHttpUrl = None
     urls: LenientList[AnyHttpUrl] = []
     cyberlockers: LenientList[AnyHttpUrl] = []
+    additional_urls: LenientList[AnyHttpUrl] = []
     error: str = ""

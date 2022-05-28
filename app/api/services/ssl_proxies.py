@@ -5,8 +5,8 @@ from app.logging import logger
 
 
 class SSLProxies:
-    def __init__(self):
-        self.url = "https://www.google.com/"
+    def __init__(self, url):
+        self.url = url
         self.target_url = "https://www.sslproxies.org/"
 
     def __proxy(self):

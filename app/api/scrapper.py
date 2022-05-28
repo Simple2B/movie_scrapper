@@ -16,15 +16,15 @@ from app.api.services import (
 )
 
 
-def init_driver() -> WebDriver:
+def init_driver(url) -> WebDriver:
     # Init User Agent
     ua: UserAgents = UserAgents()
     user_agent = ua.random_user_agent()
 
     # # Proxy
-    proxy = SSLProxies()
-    PROXY, country = proxy.check_proxy()
-    logger.info("[+] Proxy of choice: " + str(PROXY))
+    # proxy = SSLProxies(url)
+    # PROXY, country = proxy.check_proxy()
+    # logger.info("[+] Proxy of choice: " + str(PROXY))
 
     # Set WebDriver Options
     options = Options()
@@ -43,22 +43,22 @@ def init_driver() -> WebDriver:
     options.add_argument("user-agent={}".format(user_agent))
 
     # Set DesiredCapabilities
-    capabilities = DesiredCapabilities.CHROME.copy()
+    # capabilities = DesiredCapabilities.CHROME.copy()
 
-    capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
-    capabilities["proxy"] = {
-        "httpProxy": PROXY,
-        "ftpProxy": PROXY,
-        "sslProxy": PROXY,
-        "noProxy": None,
-        "proxyType": "MANUAL",
-        "class": "org.openqa.selenium.Proxy",
-        "autodetect": False,
-    }
+    # capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
+    # capabilities["proxy"] = {
+    #     "httpProxy": PROXY,
+    #     "ftpProxy": PROXY,
+    #     "sslProxy": PROXY,
+    #     "noProxy": None,
+    #     "proxyType": "MANUAL",
+    #     "class": "org.openqa.selenium.Proxy",
+    #     "autodetect": False,
+    # }
     driver = WebDriver(
         service=Service(ChromeDriverManager(path=settings.DRIVERS_DIR).install()),
         options=options,
-        desired_capabilities=capabilities,
+        # desired_capabilities=capabilities,
     )
 
     # Confirm user agent
@@ -66,25 +66,21 @@ def init_driver() -> WebDriver:
     logger.info("[+] User Agent in use: {}".format(agent))
 
     # Confirm GeoLocation
-    location_change = Geolocation()
-    location_change.change_geolocation(driver, country)
+    # location_change = Geolocation()
+    # location_change.change_geolocation(driver, country)
 
     return driver
 
 
 def get_links(url: str) -> str:
     """Return raw html page"""
-    driver = init_driver()
+    driver = init_driver(url)
     try:
-        logger.info("[+] Opening url...")
+        logger.info("[+] Opening url... {}".format(url))
         driver.get(url)
         random_timeout(10)
-
-        # a_tags = driver.find_elements(By.TAG_NAME, "a")
-        # return [a.get_attribute("href") for a in a_tags]
-
-        html = driver.execute_script("return document.documentElement.outerHTML;")
-        links = re.findall('"((http|ftp)s?://.*?)"', html)
+        source = driver.page_source
+        links = re.findall('"((http|ftp)s?://.*?)"', source)
         return [link[0] for link in links]
 
     finally:

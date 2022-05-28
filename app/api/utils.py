@@ -15,15 +15,15 @@ def encode_link(url: str) -> str:
     return base64.urlsafe_b64encode(url.encode()).decode("utf-8")
 
 
-def random_timeout(min=1, max=60):
+def random_timeout(min=1, max=20):
     time.sleep(random.randint(min, max))
 
 
-def __url_belong_to_domain(host: str, ignored_domain: str) -> bool:
-    if not ignored_domain or not host or ignored_domain not in host:
+def __url_belong_to_domain(host: str, domain: str) -> bool:
+    if not domain or not host or domain not in host:
         return False
-    len_sub_domain = len(host) - len(ignored_domain)
-    return host[len_sub_domain:] == ignored_domain
+    len_sub_domain = len(host) - len(domain)
+    return host[len_sub_domain:] == domain
 
 
 def __get_configs(path: str = settings.FILTER_CONFIGS_PATH) -> dict:
@@ -59,12 +59,16 @@ def __updated_configs(data: Urls) -> dict:
 
 
 def sort_urls(data: Urls) -> Urls:
+    from app.api.scrapper import get_links
+
     cleaned_urls: list[AnyHttpUrl] = __urls_cleanup(data)
     cyberlockers: list[AnyHttpUrl] = __find_cyberlockers(data)
+    additional_urls: list[AnyHttpUrl] = __find_source_links(data)
     return Urls(
         target_url=data.target_url,
         urls=cleaned_urls,
         cyberlockers=cyberlockers,
+        additional_urls=additional_urls,
         error=data.error,
     )
 
@@ -78,7 +82,7 @@ def __urls_pre_cleanup(data: Urls) -> Urls:
     )
     urls: list[AnyHttpUrl] = []
     for url in data.urls:
-        if url.scheme and url.host and url.tld and url.path:
+        if url.path:
             urls += [url]
     return Urls(
         target_url=data.target_url,
@@ -88,44 +92,91 @@ def __urls_pre_cleanup(data: Urls) -> Urls:
     )
 
 
-def __urls_cleanup(data: Urls) -> list[AnyHttpUrl]:
-    data: Urls = __urls_pre_cleanup(data)
-    configs: dict = __updated_configs(data)
-    stage_1_cleaned_urls: list[AnyHttpUrl] = []
-    stage_2_cleaned_urls: list[AnyHttpUrl] = []
-    stage_3_cleaned_urls: list[AnyHttpUrl] = []
-    for url in data.urls:
-        for domain in configs.get("domains"):
+def __delete_ulr_by_domain(urls: list[AnyHttpUrl], domains: list) -> list[AnyHttpUrl]:
+    result: list[AnyHttpUrl] = []
+    for url in urls:
+        for domain in domains:
             if __url_belong_to_domain(
                 host=url.host,
-                ignored_domain=domain,
+                domain=domain,
             ):
                 break
         else:
-            stage_1_cleaned_urls += [url]
-    for url in stage_1_cleaned_urls:
-        for extension in configs.get("extensions_end"):
+            result += [url]
+    return result
+
+
+def __delete_url_by_extension_end(
+    urls: list[AnyHttpUrl], extensions_end: list
+) -> list[AnyHttpUrl]:
+    result: list[AnyHttpUrl] = []
+    for url in urls:
+        for extension in extensions_end:
             if url.endswith(extension):
                 break
         else:
-            stage_2_cleaned_urls += [url]
-    for url in stage_2_cleaned_urls:
-        for extension in configs.get("extensions_in"):
+            result += [url]
+    return result
+
+
+def __delete_url_by_extension_in(
+    urls: list[AnyHttpUrl], extensions_in: list
+) -> list[AnyHttpUrl]:
+    result: list[AnyHttpUrl] = []
+    for url in urls:
+        for extension in extensions_in:
             if extension in url:
                 break
         else:
-            stage_3_cleaned_urls += [url]
-    return stage_3_cleaned_urls
+            result += [url]
+    return result
+
+
+def __urls_cleanup(data: Urls) -> list[AnyHttpUrl]:
+    data: Urls = __urls_pre_cleanup(data)
+    configs: dict = __updated_configs(data)
+
+    stage_1: list[AnyHttpUrl] = __delete_ulr_by_domain(
+        data.urls, configs.get("domains")
+    )
+    stage_2: list[AnyHttpUrl] = __delete_url_by_extension_end(
+        stage_1, configs.get("extensions_end")
+    )
+    stage_3: list[AnyHttpUrl] = __delete_url_by_extension_in(
+        stage_2, configs.get("extensions_in")
+    )
+    return stage_3
+
+
+def __find_source_links(data: Urls) -> list[AnyHttpUrl]:
+    data: Urls = __urls_pre_cleanup(data)
+    configs: dict = __updated_configs(data)
+    urls: list[AnyHttpUrl] = __delete_url_by_extension_end(
+        data.urls, configs.get("extensions_end")
+    )
+
+    source_links: list[AnyHttpUrl] = []
+    for url in urls:
+        for cyberlocker in configs.get("cyberlockers"):
+            if (
+                not __url_belong_to_domain(host=url.host, domain=cyberlocker)
+                and cyberlocker.split(".")[0] in url
+            ):
+                source_links += [url]
+    return source_links
 
 
 def __find_cyberlockers(data: Urls) -> list[AnyHttpUrl]:
     data: Urls = __urls_pre_cleanup(data)
     configs: dict = __updated_configs(data)
 
-    found_cyberlockers: list = []
+    found_cyberlockers: list[AnyHttpUrl] = []
     for url in data.urls:
         for cyberlocker in configs.get("cyberlockers"):
-            if cyberlocker in url:
+            if __url_belong_to_domain(
+                host=url.host,
+                domain=cyberlocker,
+            ):
                 found_cyberlockers += [url]
     return found_cyberlockers
 
@@ -140,7 +191,7 @@ def make_output_filepath(
     filepath: str,
 ) -> str:
     splitted_filepath = filepath.split("/")
-    splitted_filepath[-1] = prefix + ".csv"
+    splitted_filepath[-1] = prefix
     result_filepath = "/".join(str(item) for item in splitted_filepath)
     return result_filepath
 
@@ -195,12 +246,18 @@ def write_data_to_csv_file(data: Urls, filepath: str, url_type: str) -> None:
                         writer.writerow(["", "", "", cyberlocker])
 
 
-def write_unique_cyberlockers_to_csv_file(data: Urls, filepath: str) -> None:
+def write_unique_cyberlockers_to_csv_file(cyberlockers: list, filepath: str) -> None:
     with open(filepath, "a+") as result_table:
         writer = csv.writer(result_table)
-        writer.writerow(["URL", "Count:", len(data.cyberlockers)])
-        for cyberlocker in data.cyberlockers:
+        writer.writerow(["URL", "Count:", len(cyberlockers)])
+        for cyberlocker in cyberlockers:
             writer.writerow([cyberlocker])
+
+
+def write_source_links_to_file(data: Urls, filepath: str) -> None:
+    with open(filepath, "a+") as file:
+        for url in data.additional_urls:
+            file.writelines(url + "\n")
 
 
 def find_unique_cyberlockers_from_a_file(filepath: str) -> list:
