@@ -25,7 +25,7 @@ $ cd cyberlocker-api
 ```
 - Start application
 ```
-$ poetry run uvicorn app.main:app
+$ poetry run uvicorn main:app
 ```
 ### Run docker container and [Enjoy](http://127.0.0.1:8000/api/docs)
 - Go to working directory
