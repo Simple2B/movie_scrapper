@@ -16,7 +16,7 @@ def client() -> Generator:
 def test_input_movies_url(client: TestClient, monkeypatch):
 
     BROKEN_ENCODED_STR = "abcdef123456"
-    TEST_URL = "https://www.google.com/"
+    TEST_URL = "https://123putlocker.website/movie/cosmic-sin-68109"
     TEST_BROKEN_URL = "httwww.google"
 
     TEST_URLS = [

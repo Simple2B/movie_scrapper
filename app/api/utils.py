@@ -46,7 +46,7 @@ def __updated_configs(data: Urls) -> dict:
     ]
     counter = {domain: domains.count(domain) for domain in domains}
     for domain, count in counter.items():
-        if count >= 10 and domain not in ignored_domains:
+        if count >= 5 and domain not in ignored_domains:
             ignored_domains += [domain]
     if home_domain not in ignored_domains:
         ignored_domains += [home_domain]

@@ -61,6 +61,7 @@ class SSLProxies:
                     },
                     timeout=8,
                 )
+
                 if r.status_code == 200:
                     logger.info("\n[+] IP Address used as proxy: " + PROXY)
                     proxy_found = True
