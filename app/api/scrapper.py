@@ -24,25 +24,26 @@ def init_driver(url) -> WebDriver:
     # # Proxy
     proxy = SSLProxies(url)
     # PROXY, country = proxy.check_proxy()
-    PROXY = proxy.proxycrawlURL
+    PROXY, country = proxy.proxycrawlURL, "UK"
     logger.info("[+] Proxy of choice: " + str(PROXY))
 
     # Set WebDriver Options
     options = Options()
 
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-using")
-    options.add_argument("--disable-extensions")
     options.add_argument("--disable-gpu")
+    options.add_argument("--disable-dev-shm-using")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-extensions")
     options.add_argument("--incognito")
     options.add_argument("--disable-notifications")
-    options.add_argument("start-maximized")
-    options.add_argument("disable-infobars")
-    options.add_argument("ignore-certificate-errors")
+    options.add_argument("--start-maximized")
+    options.add_argument("--disable-infobars")
+    options.add_argument("--ignore-certificate-errors")
     options.add_argument("--disable-setuid-sandbox")
-    options.add_argument("--remote-debugging-port=9222")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("user-agent={}".format(user_agent))
+    options.add_argument("--remote-debugging-port=9230")
+    options.add_argument("--user-agent={}".format(user_agent))
 
     # Set DesiredCapabilities
     capabilities = DesiredCapabilities.CHROME.copy()
@@ -57,6 +58,7 @@ def init_driver(url) -> WebDriver:
         "class": "org.openqa.selenium.Proxy",
         "autodetect": False,
     }
+
     driver = WebDriver(
         service=Service(ChromeDriverManager(path=settings.DRIVERS_DIR).install()),
         options=options,

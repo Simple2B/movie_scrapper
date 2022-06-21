@@ -45,6 +45,10 @@ async def input_movies_url(
     ) as e:
         data.error = e.msg
         logger.error("Failed to parse page from url [{}].", data.target_url)
+
+        import traceback
+        print(traceback.format_exc())
+
         return JSONResponse(
             status_code=status.HTTP_408_REQUEST_TIMEOUT, content=data.dict()
         )
