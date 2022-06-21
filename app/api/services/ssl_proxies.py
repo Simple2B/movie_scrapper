@@ -8,6 +8,8 @@ class SSLProxies:
     def __init__(self, url):
         self.url = url
         self.target_url = "https://www.sslproxies.org/"
+        self.token = "OT0g8l4w7i5bJJufZno_wA"
+        self.proxycrawlURL = "http://{}:@smartproxy.proxycrawl.com:8012".format(self.token)
 
     def __proxy(self):
         headers = {

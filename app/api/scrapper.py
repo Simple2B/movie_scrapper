@@ -23,7 +23,8 @@ def init_driver(url) -> WebDriver:
 
     # # Proxy
     proxy = SSLProxies(url)
-    PROXY, country = proxy.check_proxy()
+    # PROXY, country = proxy.check_proxy()
+    PROXY = proxy.proxycrawlURL
     logger.info("[+] Proxy of choice: " + str(PROXY))
 
     # Set WebDriver Options
@@ -37,6 +38,7 @@ def init_driver(url) -> WebDriver:
     options.add_argument("--disable-notifications")
     options.add_argument("start-maximized")
     options.add_argument("disable-infobars")
+    options.add_argument("ignore-certificate-errors")
     options.add_argument("--disable-setuid-sandbox")
     options.add_argument("--remote-debugging-port=9222")
     options.add_argument("--disable-dev-shm-usage")
@@ -66,8 +68,8 @@ def init_driver(url) -> WebDriver:
     logger.info("[+] User Agent in use: {}".format(agent))
 
     # Confirm GeoLocation
-    location_change = Geolocation()
-    location_change.change_geolocation(driver, country)
+    # location_change = Geolocation()
+    # location_change.change_geolocation(driver, country)
 
     return driver
 
