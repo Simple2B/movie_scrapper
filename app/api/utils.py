@@ -202,8 +202,19 @@ def get_target_urls_from_file(input_filepath: str) -> list:
     return urls_to_be_scrapped
 
 
-def write_data_to_csv_file(data: Urls, filepath: str, url_type: str) -> None:
+def remove_empty_lines(filename):
+    if not os.path.isfile(filename):
+        print("{} does not exist ".format(filename))
+        return
+    with open(filename) as filehandle:
+        lines = filehandle.readlines()
 
+    with open(filename, 'w') as filehandle:
+        lines = filter(lambda x: x.strip(), lines)
+        filehandle.writelines(lines)
+
+
+def write_data_to_csv_file(data: Urls, filepath: str, url_type: str) -> None:
     if url_type == "links":
         if not os.path.exists(filepath):
             with open(filepath, "a+") as result_table:
@@ -244,6 +255,9 @@ def write_data_to_csv_file(data: Urls, filepath: str, url_type: str) -> None:
                         first_url = False
                     else:
                         writer.writerow(["", "", "", cyberlocker])
+
+    # Remove any empty lines introduced
+    remove_empty_lines(filepath)
 
 
 def write_unique_cyberlockers_to_csv_file(cyberlockers: list, filepath: str) -> None:

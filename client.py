@@ -41,8 +41,16 @@ def scrap_url():
 
 
 def scrap_file():
-    input_filepath = os.environ.get("input_filepath", None)
-    urls_output_filepath = make_output_filepath("urls.csv", input_filepath)
+    # if no path use test file
+    try:
+        input_filepath = os.environ.get("input_filepath", None)
+        urls_output_filepath = make_output_filepath("urls.csv", input_filepath)
+
+    except AttributeError as e:
+        # input_filepath = "./tests/88_ulrs_test_-_Bull.txt"
+        input_filepath = "./tests/small_test.txt"
+        urls_output_filepath = make_output_filepath("urls.csv", input_filepath)
+
     target_urls_output_filepath = make_output_filepath(
         "target_links.txt", input_filepath
     )
