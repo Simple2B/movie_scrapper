@@ -8,7 +8,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium_stealth import stealth
 import undetected_chromedriver as uc
 
-
 from app.logging import logger
 from app.config import settings
 from app.api.utils import random_timeout

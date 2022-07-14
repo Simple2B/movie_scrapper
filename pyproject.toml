@@ -16,6 +16,8 @@ requests = "^2.27.1"
 random-user-agent = "^1.0.1"
 beautifulsoup4 = "^4.11.1"
 webdriver-manager = "^3.7.0"
+selenium-stealth = "^1.0.6"
+undetected-chromedriver = "^3.1.5"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
