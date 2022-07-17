@@ -10,6 +10,7 @@ class SSLProxies:
         self.target_url = "https://www.sslproxies.org/"
         self.token = "OT0g8l4w7i5bJJufZno_wA"
         self.proxycrawlURL = "http://{}:@smartproxy.proxycrawl.com:8012".format(self.token)
+        self.proxyaxe = "45.155.125.200:9866"
 
     def __proxy(self):
         headers = {
@@ -43,7 +44,7 @@ class SSLProxies:
         counter = 0
         PROXY, country = "", ""
         while not proxy_found:
-            if counter == 60:
+            if counter == 100:
                 logger.error("Unable to create connection to {}".format(self.url))
                 raise WebDriverException("Unable to create connection to target URL")
             proxy_choice = random.choice(self.__proxy())

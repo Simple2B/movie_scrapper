@@ -55,6 +55,7 @@ def __updated_configs(data: Urls) -> dict:
         "extensions_in": configs.get("extensions_in"),
         "domains": ignored_domains,
         "cyberlockers": configs.get("cyberlockers"),
+        "cyberlocker_sources": configs.get("cyberlocker:sources")
     }
 
 
