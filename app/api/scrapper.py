@@ -2,7 +2,7 @@ import re
 
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.common.exceptions import ElementNotInteractableException, NoSuchFrameException
+from selenium.common.exceptions import ElementNotInteractableException, NoSuchFrameException, StaleElementReferenceException
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -40,7 +40,7 @@ def init_driver(url) -> WebDriver:
     # Set WebDriver Options
     options = Options()
 
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-gpu")
     options.add_argument("--disable-dev-shm-using")
@@ -137,7 +137,8 @@ def click_iframes(driver):
     iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
     for index, iframe in enumerate(iframes):
         try:
-            iframe.click()
+            driver.execute_script("arguments[0].click();", iframe)
+            # iframe.click()
         except ElementNotInteractableException:
             pass
 
@@ -159,29 +160,48 @@ def get_urls(driver):
 def get_cyberlockers(driver, cyberlocker_sources, links):
     # Iterate all elements but only if they have no children
     for element in driver.find_elements(By.XPATH, ".//*"):
-        child_elements = element.find_elements(By.XPATH, ".//*")
+        try:
+            child_elements = element.find_elements(By.XPATH, ".//*")
+        except StaleElementReferenceException:
+            child_elements = []
 
         if len(child_elements) > 0: continue
 
-        element_text = driver.execute_script("return arguments[0].textContent;", element)\
-            .replace(" ", "")\
-            .replace("\n", "")\
-            .lower()
+        # Throws error if we've been moved to a new page or element doesn't exist anymore
+        correct_page = False
+        attempts = 0
+        while not correct_page and attempts < 10:
+            try:
+                attempts += 1
+                element_text = driver.execute_script("return arguments[0].textContent;", element)\
+                    .replace(" ", "")\
+                    .replace("\n", "")\
+                    .lower()
+                correct_page = True
 
-        if any(server in element_text.lower() for server in cyberlocker_sources):
+            except StaleElementReferenceException:
+                driver.execute_script("history.back()")
+
+        # Check if parent or current element if an anchor tag
+        # Open this in a new tab and click non-anchors
+        parent_tag = element.find_element(By.XPATH, "..").tag_name
+        new_server_url = None
+        if parent_tag == 'a':
+            new_server_url = element.find_element(By.XPATH, "..").get_attribute('href')
+        elif element.tag_name == 'a':
+            new_server_url = element.get_attribute('href')
+
+        if new_server_url:
+            logger.info("[+] Opening server in new tab: " + new_server_url)
+            logger.info("window.open('{}', '_blank');".format(new_server_url))
+            driver.execute_script("window.open('{}', '_blank');".format(new_server_url))
+        elif any(server in element_text.lower() for server in cyberlocker_sources):
             logger.info("[+] Selecting server: " + element_text)
 
             try:
                 driver.execute_script("arguments[0].click();", element)
                 random_timeout(10)
-
-                # iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
-                # for iframe in iframes:
-                #     links.append(iframe.get_attribute('src'))
                 links += get_urls(driver)
-
-            except ElementNotInteractableException:
-                logger.error("[!] Server invalid: " + element_text)
 
             except Exception as ex:
                 logger.error("[!] Error when searching for servers: " + ex)

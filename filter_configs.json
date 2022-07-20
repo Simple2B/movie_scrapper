@@ -253,6 +253,9 @@
       "mycloud",
       "multisource",
       "coolsv2",
-      "videobin"
+      "videobin",
+      "server",
+      "mirror",
+      "version"
     ]
   }

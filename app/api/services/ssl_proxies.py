@@ -44,7 +44,7 @@ class SSLProxies:
         counter = 0
         PROXY, country = "", ""
         while not proxy_found:
-            if counter == 100:
+            if counter == 25:
                 logger.error("Unable to create connection to {}".format(self.url))
                 raise WebDriverException("Unable to create connection to target URL")
             proxy_choice = random.choice(self.__proxy())
