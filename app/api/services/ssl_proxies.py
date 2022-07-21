@@ -1,4 +1,5 @@
-import requests, random
+import requests
+from multiprocessing import Pool
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import WebDriverException
 from app.logging import logger
@@ -8,9 +9,7 @@ class SSLProxies:
     def __init__(self, url):
         self.url = url
         self.target_url = "https://www.sslproxies.org/"
-        self.token = "OT0g8l4w7i5bJJufZno_wA"
-        self.proxycrawlURL = "http://{}:@smartproxy.proxycrawl.com:8012".format(self.token)
-        self.proxyaxe = "45.155.125.200:9866"
+        self.proxy_list = self.__proxy()
 
     def __proxy(self):
         headers = {
@@ -26,50 +25,56 @@ class SSLProxies:
         try:
             response = requests.get(url=self.target_url, headers=headers)
         except:
-            logger.error("SSL Proxies is either down or there is no Internet")
+            logger.error("[!] SSL Proxies is either down or there is no Internet")
             quit()
+
         soup = BeautifulSoup(response.text, "html.parser")
         table = soup.findAll("table")[0]
         rows = table.findAll("tr")
 
         for row in rows[1:]:
             tds = row.findAll("td")
-            PROXY = "{}:{}".format(tds[0].get_text(), tds[1].get_text())
+            proxy_ip = "{}:{}".format(tds[0].get_text(), tds[1].get_text())
             country = tds[2].get_text()
-            proxies.append([PROXY, country])
+            proxies.append([proxy_ip, country])
         return proxies
 
-    def check_proxy(self):
-        proxy_found = False
-        counter = 0
-        PROXY, country = "", ""
-        while not proxy_found:
-            if counter == 25:
-                logger.error("Unable to create connection to {}".format(self.url))
-                raise WebDriverException("Unable to create connection to target URL")
-            proxy_choice = random.choice(self.__proxy())
-            PROXY, country = proxy_choice
-            counter += 1
-            logger.info(
-                "[+] Looking for valid IP address: {} >>> {}".format(
-                    str(counter), proxy_choice
-                )
-            )
-            try:
-                r = requests.get(
-                    self.url,
-                    proxies={
-                        "http": PROXY,
-                        "https": PROXY,
-                    },
-                    timeout=8,
-                )
+    def check_proxy(self, proxy_info):
+        proxy_ip = proxy_info[0]
 
-                if r.status_code == 200:
-                    logger.info("\n[+] IP Address used as proxy: " + PROXY)
-                    proxy_found = True
-                else:
-                    PROXY, country = proxy_choice
-            except:
-                PROXY, country = proxy_choice
-        return PROXY, country
+        logger.info("[+] Looking for valid IP address: {}".format(proxy_info))
+
+        try:
+            r = requests.get(
+                self.url,
+                proxies={
+                    "http": proxy_ip,
+                    "https": proxy_ip,
+                },
+                timeout=10,
+            )
+
+            if r.status_code != 200:
+                proxy_ip = ""
+
+        except:
+            proxy_ip = ""
+
+        return proxy_ip
+
+    def get_proxy(self):
+        with Pool() as pool:
+            proxy_results = pool.map(self.check_proxy, self.proxy_list[:25])
+
+        for chosen_proxy in proxy_results:
+            if chosen_proxy: return chosen_proxy
+
+        logger.error("[!] Unable to create connection to {}".format(self.url))
+        raise WebDriverException("Unable to create connection to target URL")
+
+
+if __name__ == "__main__":
+    url = 'https://putlocker.today/bull/'
+    proxy = SSLProxies(url)
+    proxy_ip = proxy.get_proxy()
+    print(proxy_ip)

@@ -12,6 +12,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium_stealth import stealth
 # import seleniumwire.undetected_chromedriver as uc
 import undetected_chromedriver as uc
+import validators
+from time import sleep
 
 from app.api.utils import __get_configs
 from app.logging import logger
@@ -32,14 +34,11 @@ def init_driver(url) -> WebDriver:
 
     # # Proxy
     proxy = SSLProxies(url)
-    PROXY, country = proxy.check_proxy()
-    # PROXY, country = proxy.proxycrawlURL, "UK"
-    # PROXY, country = proxy.proxyaxe, 'UK'
+    PROXY = proxy.get_proxy()
     logger.info("[+] Proxy of choice: " + str(PROXY))
 
     # Set WebDriver Options
     options = Options()
-
     # options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-gpu")
@@ -95,10 +94,6 @@ def init_driver(url) -> WebDriver:
     agent = ua.get_user_agent(driver)
     logger.info("[+] User Agent in use: {}".format(agent))
 
-    # Confirm GeoLocation
-    # location_change = Geolocation()
-    # location_change.change_geolocation(driver, country)
-
     return driver
 
 
@@ -128,7 +123,12 @@ def click_anchors(driver):
                     any(loader in anchor.get_attribute("class") for loader in loader_strings)) or \
                     "background-image" in anchor.get_attribute("style"):
                 driver.execute_script("arguments[0].click();", anchor)
+                print(anchor.get_attribute('innerHTML'))
+
         except ElementNotInteractableException:
+            pass
+
+        except StaleElementReferenceException:
             pass
 
 
@@ -153,34 +153,44 @@ def close_popups(driver, primary_handle):
 
 def get_urls(driver):
     source = driver.page_source
-    links = re.findall('"((http|ftp)s?://.*?)"', source)
+    links = re.findall('"((http|ftp)s?://.*/?)"', source)
     return [link[0] for link in links]
 
 
-def get_cyberlockers(driver, cyberlocker_sources, links):
+def get_cyberlockers(driver, cyberlocker_sources, checked, links):
+    # Grab links immediately
+    links += get_urls(driver)
+
     # Iterate all elements but only if they have no children
-    for element in driver.find_elements(By.XPATH, ".//*"):
+    potential_servers = driver.find_elements(By.TAG_NAME, "li")
+    potential_servers += driver.find_elements(By.TAG_NAME, "div")
+    potential_servers += driver.find_elements(By.TAG_NAME, "a")
+
+    # for element in driver.find_elements(By.XPATH, ".//*"):
+    for element in potential_servers:
         try:
+            if element.get_attribute('innerHTML') in checked:
+                continue
+            else:
+                checked.append(element.get_attribute('innerHTML'))
+
             child_elements = element.find_elements(By.XPATH, ".//*")
+
         except StaleElementReferenceException:
             child_elements = []
 
         if len(child_elements) > 0: continue
 
-        # Throws error if we've been moved to a new page or element doesn't exist anymore
-        correct_page = False
-        attempts = 0
-        while not correct_page and attempts < 10:
-            try:
-                attempts += 1
-                element_text = driver.execute_script("return arguments[0].textContent;", element)\
-                    .replace(" ", "")\
-                    .replace("\n", "")\
-                    .lower()
-                correct_page = True
+        try:
+            element_text = driver.execute_script("return arguments[0].textContent;", element)\
+                .replace(" ", "")\
+                .replace("\n", "")\
+                .lower()
 
-            except StaleElementReferenceException:
-                driver.execute_script("history.back()")
+        except StaleElementReferenceException:
+            logger.error("Retrying frame")
+            get_cyberlockers(driver, cyberlocker_sources, checked, links)
+            return links
 
         # Check if parent or current element if an anchor tag
         # Open this in a new tab and click non-anchors
@@ -191,32 +201,36 @@ def get_cyberlockers(driver, cyberlocker_sources, links):
         elif element.tag_name == 'a':
             new_server_url = element.get_attribute('href')
 
-        if new_server_url:
-            logger.info("[+] Opening server in new tab: " + new_server_url)
-            logger.info("window.open('{}', '_blank');".format(new_server_url))
-            driver.execute_script("window.open('{}', '_blank');".format(new_server_url))
-        elif any(server in element_text.lower() for server in cyberlocker_sources):
-            logger.info("[+] Selecting server: " + element_text)
+        if len(element_text) < 20 and any(server in element_text.lower() for server in cyberlocker_sources):
+            # New URL for this movie
+            if validators.url(str(new_server_url)):
+                logger.info("[+] Found potential new URL: " + new_server_url)
+                # current_handle = driver.current_window_handle
+                # driver.switch_to.new_window(WindowTypes.TAB)
+                # driver.get(new_server_url)
+                # driver.switch_to.window(current_handle)
 
-            try:
-                driver.execute_script("arguments[0].click();", element)
-                random_timeout(10)
-                links += get_urls(driver)
+            else:
+                logger.info("[+] Selecting server: " + element_text)
 
-            except Exception as ex:
-                logger.error("[!] Error when searching for servers: " + ex)
+                try:
+                    driver.execute_script("arguments[0].click();", element)
+                    random_timeout(10)
+
+                except Exception as ex:
+                    logger.error("[!] Error when searching for servers: " + ex)
 
     for index, iframe in enumerate(driver.find_elements(By.XPATH, "//iframe")):
+        logger.info("Switching to new iframe")
+
         try:
             links.append(iframe.get_attribute('src'))
             driver.switch_to.frame(index)
-            links = get_cyberlockers(driver, cyberlocker_sources, links)
-
-        except Exception as ex:
-            logger.error("[!] Error finding server iframes")
-
-        finally:
+            links = get_cyberlockers(driver, cyberlocker_sources, checked, links)
             driver.switch_to.parent_frame()
+
+        except NoSuchFrameException:
+            logger.error("[!] Error unknown frame")
 
     return links
 
@@ -225,7 +239,6 @@ def get_links(url: str) -> str:
     """Return raw html page"""
     cyberlocker_sources = __get_configs().get("cyberlocker_sources")
     driver = init_driver(url)
-    primary_handle = driver.current_window_handle
     links = []
 
     try:
@@ -234,12 +247,11 @@ def get_links(url: str) -> str:
         random_timeout(10)
 
         # Debugging save screenshot
-        save_screenshot(driver)
+        # save_screenshot(driver)
 
         # Iterate each anchor
         logger.info("[+] Finding movie thumbnails")
         click_anchors(driver)
-        random_timeout(10)
 
         # Iterate each iframe
         logger.info("[+] Finding Iframes")
@@ -250,7 +262,8 @@ def get_links(url: str) -> str:
         # close_popups(driver, primary_handle)
 
         logger.info("[+] Finding servers")
-        links = get_cyberlockers(driver, cyberlocker_sources, links)
+        checked = []
+        links = get_cyberlockers(driver, cyberlocker_sources, checked, links)
 
         return list(set(links))
 
