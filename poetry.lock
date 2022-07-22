@@ -162,6 +162,14 @@ ssh = ["bcrypt (>=3.1.5)"]
 test = ["pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
 
 [[package]]
+name = "decorator"
+version = "5.1.1"
+description = "Decorators for Humans"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
 name = "fastapi"
 version = "0.75.2"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -601,6 +609,20 @@ h11 = ">=0.8"
 standard = ["websockets (>=10.0)", "httptools (>=0.4.0)", "watchgod (>=0.6)", "python-dotenv (>=0.13)", "PyYAML (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "colorama (>=0.4)"]
 
 [[package]]
+name = "validators"
+version = "0.20.0"
+description = "Python Data Validation for Humans™."
+category = "main"
+optional = false
+python-versions = ">=3.4"
+
+[package.dependencies]
+decorator = ">=3.4.0"
+
+[package.extras]
+test = ["pytest (>=2.2.3)", "flake8 (>=2.4.0)", "isort (>=4.2.2)"]
+
+[[package]]
 name = "webdriver-manager"
 version = "3.8.1"
 description = "Library provides the way to automatically manage drivers for different browsers"
@@ -645,7 +667,7 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "8522792e0da606d00798f04f820f7e155264a2558a4fbca52789503e5d77c2ba"
+content-hash = "ee3178141cf619882cc5b1c9f31ce59b1f12c613a89c9760cb88bebb1b7f22dc"
 
 [metadata.files]
 anyio = []
@@ -661,6 +683,7 @@ charset-normalizer = []
 click = []
 colorama = []
 cryptography = []
+decorator = []
 fastapi = []
 flake8 = []
 h11 = []
@@ -699,6 +722,7 @@ typing-extensions = []
 undetected-chromedriver = []
 urllib3 = []
 uvicorn = []
+validators = []
 webdriver-manager = []
 websockets = []
 win32-setctime = []
