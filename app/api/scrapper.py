@@ -39,20 +39,21 @@ def init_driver(url) -> WebDriver:
 
     # Set WebDriver Options
     options = Options()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-gpu")
     options.add_argument("--disable-dev-shm-using")
     options.add_argument("--disable-extensions")
     options.add_argument("--incognito")
     options.add_argument("--disable-notifications")
-    # options.add_argument("--start-maximized")
-    options.add_argument('--window-size=1920x1080')
+    options.add_argument("--start-maximized")
     options.add_argument("--disable-infobars")
     options.add_argument("--ignore-certificate-errors")
-    # options.add_argument("--disable-setuid-sandbox")
     options.add_argument("--remote-debugging-port=9230")
+
+    # Stealth options
     options.add_argument("--user-agent={}".format(user_agent))
+    options.add_argument('--disable-blink-features=AutomationControlled')
 
     # Set DesiredCapabilities
     capabilities = DesiredCapabilities.CHROME.copy()
@@ -151,15 +152,40 @@ def close_popups(driver, primary_handle):
     driver.switch_to.window(primary_handle)
 
 
-def get_urls(driver):
-    source = driver.page_source
-    links = re.findall('"((http|ftp)s?://.*/?)"', source)
-    return [link[0] for link in links]
+def _get_urls(driver, links):
+    # source = driver.page_source
+    # links += re.findall('"((http|ftp)s?://.*/?)"', source)
+    video_elements = driver.find_elements(By.TAG_NAME, 'video')
+    links += [video.get_attribute('src') for video in video_elements]
+
+    iframe_elements = driver.find_elements(By.TAG_NAME, "iframe")
+    links += [iframe.get_attribute('src') for iframe in iframe_elements]
+
+    for index, iframe in enumerate(iframe_elements):
+        try:
+            driver.switch_to.frame(iframe)
+            links += _get_urls(driver, links)
+            driver.switch_to.parent_frame()
+
+        except NoSuchFrameException:
+            logger.error("[!] Error unknown frame")
+
+    return links
 
 
-def get_cyberlockers(driver, cyberlocker_sources, checked, links):
+def get_urls(driver, iframe_path):
+    driver.switch_to.default_content()
+    links = _get_urls(driver, [])
+
+    for frame in iframe_path:
+        driver.switch_to.frame(frame)
+
+    return links
+
+
+def get_cyberlockers(driver, iframe_path, cyberlocker_sources, checked, links):
     # Grab links immediately
-    links += get_urls(driver)
+    links += get_urls(driver, iframe_path)
 
     # Iterate all elements but only if they have no children
     potential_servers = driver.find_elements(By.TAG_NAME, "li")
@@ -189,7 +215,7 @@ def get_cyberlockers(driver, cyberlocker_sources, checked, links):
 
         except StaleElementReferenceException:
             logger.error("Retrying frame")
-            get_cyberlockers(driver, cyberlocker_sources, checked, links)
+            get_cyberlockers(driver, iframe_path, cyberlocker_sources, checked, links)
             return links
 
         # Check if parent or current element if an anchor tag
@@ -216,6 +242,7 @@ def get_cyberlockers(driver, cyberlocker_sources, checked, links):
                 try:
                     driver.execute_script("arguments[0].click();", element)
                     random_timeout(10)
+                    links += get_urls(driver, iframe_path)
 
                 except Exception as ex:
                     logger.error("[!] Error when searching for servers: " + ex)
@@ -223,14 +250,18 @@ def get_cyberlockers(driver, cyberlocker_sources, checked, links):
     for index, iframe in enumerate(driver.find_elements(By.XPATH, "//iframe")):
         logger.info("Switching to new iframe")
 
+        # Recursively explore all iframes, keep track of the path to get there
+        # so during link extraction we can return back to current iframe
         try:
-            links.append(iframe.get_attribute('src'))
-            driver.switch_to.frame(index)
-            links = get_cyberlockers(driver, cyberlocker_sources, checked, links)
+            iframe_path.append(iframe)
+            driver.switch_to.frame(iframe)
+            links = get_cyberlockers(driver, iframe_path, cyberlocker_sources, checked, links)
             driver.switch_to.parent_frame()
+            if iframe_path: del iframe_path[-1]
 
         except NoSuchFrameException:
             logger.error("[!] Error unknown frame")
+            if iframe_path: del iframe_path[-1]
 
     return links
 
@@ -247,7 +278,7 @@ def get_links(url: str) -> str:
         random_timeout(10)
 
         # Debugging save screenshot
-        # save_screenshot(driver)
+        save_screenshot(driver)
 
         # Iterate each anchor
         logger.info("[+] Finding movie thumbnails")
@@ -262,10 +293,7 @@ def get_links(url: str) -> str:
         # close_popups(driver, primary_handle)
 
         logger.info("[+] Finding servers")
-        checked = []
-        links = get_cyberlockers(driver, cyberlocker_sources, checked, links)
-
-        return list(set(links))
+        links = get_cyberlockers(driver, [], cyberlocker_sources, [], links)
 
     finally:
         # Get session
@@ -273,3 +301,5 @@ def get_links(url: str) -> str:
         logger.info("[+] Deleting all cookies...")
         driver.delete_all_cookies()
         driver.quit()
+
+    return list(set(links))
