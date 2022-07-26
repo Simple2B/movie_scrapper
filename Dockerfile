@@ -25,6 +25,9 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     rm -rf /var/lib/apt/lists/*
 
 # configure virtual display
+RUN apt-get -yqq update && \
+    apt-get -yqq install xvfb && \
+    rm -rf /var/lib/apt/lists/*
 RUN set -e
 RUN echo "Starting X virtual framebuffer (Xvfb) in background..."
 RUN Xvfb -ac :99 -screen 0 1280x1024x16 > /dev/null 2>&1 &
