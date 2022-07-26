@@ -4,14 +4,7 @@ services:
   app:
     build: .
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: 0.50
-          memory: 512M
-        reservations:
-          cpus: 0.25
-          memory: 128M
+    shm_size: 2gb
     command: bash ./start_server.sh
     ports:
       - 127.0.0.1:8090:80
